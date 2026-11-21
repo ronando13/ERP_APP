@@ -1,0 +1,3502 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ERP Bazar & Perfumaria v1.02 - DJC Sistemas e Automações</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    if (window.tailwind) {
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+            },
+            colors: {
+              brand: {
+                50: '#f5f3ff',
+                100: '#ede9fe',
+                200: '#ddd6fe',
+                300: '#c4b5fd',
+                400: '#a78bfa',
+                500: '#8b5cf6',
+                600: '#7c3aed',
+                700: '#6d28d9',
+                800: '#5b21b6',
+                900: '#4c1d95',
+                950: '#2e1065'
+              }
+            }
+          }
+        }
+      };
+    }
+  </script>
+
+  <style>
+    /* Fallback de estilos essenciais caso Tailwind CDN demore ou esteja offline */
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+    }
+    .hidden { display: none !important; }
+
+    /* Scrollbar refinada */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+
+    /* v1.02: experiência responsiva para celulares; desktop preserva o layout original */
+    .mobile-bottom-nav { display:none; }
+    .mobile-cart-toggle { display:none; }
+    @media (max-width: 767px) {
+      body { overflow-x:hidden; }
+      #sidebar { width:min(84vw, 300px); }
+      #main-content { padding:12px !important; padding-bottom:92px !important; gap:12px !important; }
+      #app-shell > div { min-height:100dvh; }
+      #app-shell header { padding:9px 12px !important; }
+      #app-shell header #btn-sync-now { display:none; }
+      #app-shell footer { display:none !important; }
+      .mobile-bottom-nav { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); position:fixed; z-index:55; left:0; right:0; bottom:0; padding:7px 5px calc(7px + env(safe-area-inset-bottom)); background:rgba(255,255,255,.97); border-top:1px solid #e2e8f0; box-shadow:0 -5px 18px rgba(15,23,42,.08); backdrop-filter:blur(14px); }
+      .mobile-bottom-nav button { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; min-height:48px; color:#64748b; border-radius:10px; }
+      .mobile-bottom-nav button span { font-size:19px; line-height:20px; font-weight:700; }
+      .mobile-bottom-nav button small { font-size:10px; font-weight:700; }
+      .mobile-bottom-nav button.active { color:#6d28d9; background:#f5f3ff; }
+      /* Listagens em cartões de toque */
+      #main-content .overflow-x-auto:has(table) { overflow:visible !important; }
+      #main-content table { display:block; width:100%; }
+      #main-content table thead { display:none; }
+      #main-content table tbody { display:grid; gap:9px; }
+      #main-content table tbody tr { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:5px 10px; padding:11px; border:1px solid #e2e8f0; border-radius:13px; background:#fff; box-shadow:0 1px 2px rgba(15,23,42,.04); }
+      #main-content table tbody td { display:block; min-width:0; padding:3px 2px !important; text-align:left !important; overflow-wrap:anywhere; font-size:11px; }
+      #main-content table tbody td:nth-child(1), #main-content table tbody td:nth-child(2) { grid-column:1/-1; }
+      #main-content table tbody td:last-child { grid-column:1/-1; text-align:right !important; border-top:1px solid #f1f5f9; padding-top:7px !important; }
+      /* PDV: sacola recolhível e acessível com uma mão */
+      #main-content .pdv-cart-panel { position:fixed; z-index:45; left:8px; right:8px; bottom:76px; max-height:72dvh; overflow:auto; border-radius:18px; box-shadow:0 12px 40px rgba(15,23,42,.25); transform:translateY(calc(100% + 90px)); transition:transform .25s ease; }
+      #main-content .pdv-cart-panel.expanded { transform:translateY(0); }
+      .mobile-cart-toggle { display:flex; position:fixed; z-index:50; right:14px; bottom:83px; align-items:center; gap:9px; padding:12px 16px; border-radius:999px; color:#fff; background:#6d28d9; box-shadow:0 8px 24px rgba(109,40,217,.35); font-size:12px; font-weight:800; }
+      #main-content .pdv-catalog-grid { max-height:none !important; grid-template-columns:repeat(2,minmax(0,1fr)); }
+      #main-content .pdv-catalog-grid > div { padding:11px !important; min-height:132px; }
+      #barcode-scanner-modal { padding:8px !important; }
+      #barcode-scanner-modal > div { max-height:94dvh; overflow:auto; }
+      #generic-modal { align-items:flex-end !important; padding:0 !important; }
+      #generic-modal-box { border-radius:18px 18px 0 0; max-height:94dvh; overflow:auto; }
+    }
+    @media (min-width:768px) { .mobile-bottom-nav { display:none !important; } }
+
+    @media print {
+      body * { visibility: hidden; }
+      #receipt-print-area, #receipt-print-area * { visibility: visible; }
+      #receipt-print-area {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 100%;
+        background: white !important;
+        color: black !important;
+        padding: 16px;
+        box-shadow: none !important;
+      }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col selection:bg-brand-600 selection:text-white">
+
+  <!-- ===================================================================== -->
+  <!-- NOTIFICAÇÕES TOAST & MODAL DE CONFIRMAÇÃO CUSTOMIZADO (SEM ALERT)     -->
+  <!-- ===================================================================== -->
+  <div id="toast-container" class="fixed top-4 right-4 z-[100] flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+  <div id="confirm-modal" class="hidden fixed inset-0 z-[90] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-100">
+      <div class="flex items-center gap-3 mb-3">
+        <div id="confirm-icon-bg" class="w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
+        </div>
+        <h3 id="confirm-title" class="text-lg font-bold text-slate-800">Confirmar ação</h3>
+      </div>
+      <p id="confirm-message" class="text-sm text-slate-600 mb-6 leading-relaxed">Tem certeza que deseja prosseguir?</p>
+      <div class="flex justify-end gap-3">
+        <button type="button" id="confirm-cancel-btn" class="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100 transition">Cancelar</button>
+        <button type="button" id="confirm-ok-btn" class="px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 shadow-sm transition">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- TELA DE LOGIN                                                         -->
+  <!-- ===================================================================== -->
+  <section id="login-screen" class="flex-1 flex flex-col justify-between bg-gradient-to-br from-slate-950 via-brand-950 to-indigo-950 text-white p-4">
+    <div class="flex-1 flex items-center justify-center py-6">
+      <div class="w-full max-w-md bg-white text-slate-800 rounded-3xl shadow-2xl overflow-hidden border border-white/20">
+        <!-- Cabeçalho White-label da Tela de Login -->
+        <div class="bg-gradient-to-r from-brand-600 to-indigo-600 p-7 text-center text-white relative">
+          <div id="login-logo-wrapper" class="w-16 h-16 mx-auto mb-3 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center text-2xl shadow-inner overflow-hidden border border-white/25">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 109.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1114.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/></svg>
+          </div>
+          <h1 id="login-store-name" class="text-2xl font-extrabold tracking-tight">Bazar & Perfumaria</h1>
+          <p class="text-brand-100 text-xs mt-1 font-medium">Natura • Avon • Eudora • Presentes</p>
+        </div>
+
+        <div class="p-7">
+          <form id="login-form" onsubmit="window.handleLogin(event)" class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Usuário</label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
+                </span>
+                <input type="text" id="login-user" required autocomplete="username" placeholder="Digite seu usuário"
+                  class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 outline-none text-sm transition" />
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Senha</label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/></svg>
+                </span>
+                <input type="password" id="login-pass" required autocomplete="current-password" placeholder="••••••"
+                  class="w-full pl-10 pr-10 py-3 rounded-xl border border-slate-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 outline-none text-sm transition" />
+                <button type="button" onclick="window.toggleLoginPassword()" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600">
+                  <span id="login-eye-icon">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            <div id="login-error-box" class="hidden p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 text-xs font-medium flex items-center gap-2">
+              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/></svg>
+              <span id="login-error-text">Usuário ou senha inválidos.</span>
+            </div>
+
+            <button type="submit" class="w-full py-3.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 active:scale-[0.99] text-white font-semibold text-sm shadow-lg shadow-brand-600/30 transition flex items-center justify-center gap-2">
+              <span>Entrar no Sistema</span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
+            </button>
+          </form>
+
+          <!-- Aviso e botão rápido Preencher Demo -->
+          <div id="default-creds-hint" class="mt-4 p-3 rounded-xl bg-amber-50 border border-amber-200/80 text-amber-800 text-xs flex items-center justify-between gap-2">
+            <span>Acesso padrão: <strong>admin</strong> / <strong>1234</strong></span>
+            <button type="button" onclick="window.fillDemoCredentials()" class="px-2.5 py-1 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-semibold text-[11px] shrink-0 transition">
+              Preencher Demo
+            </button>
+          </div>
+
+          <!-- Botão para puxar/configurar BD nuvem antes do login -->
+          <div class="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
+            <span id="login-sync-badge" class="inline-flex items-center gap-1.5 text-slate-500 font-medium">
+              <span class="w-2 h-2 rounded-full bg-slate-400"></span> Modo Local
+            </span>
+            <button type="button" onclick="window.openGithubModalFromLogin()" class="text-brand-600 hover:text-brand-700 font-semibold flex items-center gap-1.5 py-1 px-2 rounded-lg hover:bg-brand-50 transition">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+              <span>Conectar Banco na Nuvem</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rodapé Obrigatório na Tela de Login -->
+    <footer class="text-center py-3 text-xs text-brand-200/90">
+      <span>Desenvolvido por <strong class="text-white font-semibold">DJC Sistemas e Automações</strong></span>
+      <span class="mx-2">•</span>
+      <span class="px-2 py-0.5 rounded-full bg-white/10 text-white font-mono text-[11px]">v1.02</span>
+    </footer>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- APLICAÇÃO PRINCIPAL (ERP)                                             -->
+  <!-- ===================================================================== -->
+  <div id="app-shell" class="hidden flex-1 flex flex-col min-h-screen">
+    <div class="flex-1 flex overflow-hidden">
+      <!-- Backdrop Mobile Menu -->
+      <div id="sidebar-backdrop" onclick="window.toggleMobileSidebar()" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-30 lg:hidden"></div>
+
+      <!-- SIDEBAR DE NAVEGAÇÃO -->
+      <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 z-40 w-64 bg-slate-900 text-slate-300 flex flex-col transition-transform duration-300 -translate-x-full lg:translate-x-0 shrink-0">
+        <!-- Identidade da Loja (White-Label) -->
+        <div class="p-5 border-b border-slate-800 flex items-center gap-3">
+          <div id="sidebar-logo" class="w-11 h-11 rounded-xl bg-gradient-to-br from-brand-500 to-indigo-600 text-white flex items-center justify-center text-lg font-bold shrink-0 overflow-hidden shadow-md">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 109.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1114.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/></svg>
+          </div>
+          <div class="min-w-0 flex-1">
+            <h2 id="sidebar-store-name" class="text-white font-bold text-sm truncate">Bazar & Perfumaria</h2>
+            <p id="sidebar-store-sub" class="text-[11px] text-slate-400 truncate">ERP Gestão Comercial</p>
+          </div>
+          <button type="button" onclick="window.toggleMobileSidebar()" class="lg:hidden text-slate-400 hover:text-white p-1">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        <!-- Menu de Módulos -->
+        <nav id="sidebar-nav" class="flex-1 overflow-y-auto p-3 space-y-1">
+          <button type="button" onclick="window.navigate('dashboard')" data-nav="dashboard" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z"/><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z"/></svg>
+            <span>Dashboard</span>
+          </button>
+          <button type="button" onclick="window.navigate('pdv')" data-nav="pdv" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"/></svg>
+            <span>PDV / Frente de Caixa</span>
+          </button>
+          <button type="button" onclick="window.navigate('produtos')" data-nav="produtos" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/></svg>
+            <span>Produtos & Estoque</span>
+          </button>
+          <button type="button" onclick="window.navigate('clientes')" data-nav="clientes" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg>
+            <span>Clientes & Fiado</span>
+          </button>
+          <button type="button" onclick="window.navigate('encomendas')" data-nav="encomendas" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/></svg>
+            <span>Encomendas Revista</span>
+          </button>
+          <button type="button" onclick="window.navigate('financeiro')" data-nav="financeiro" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z"/></svg>
+            <span>Fluxo de Caixa</span>
+          </button>
+
+          <div class="pt-3 mt-3 border-t border-slate-800 space-y-1">
+            <p class="px-3.5 text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Administração</p>
+            <button type="button" onclick="window.navigate('configuracoes', 'loja')" data-nav="config-loja" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition">
+              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .415.336.75.75.75z"/></svg>
+              <span>Dados da Loja</span>
+            </button>
+            <button type="button" onclick="window.navigate('configuracoes', 'usuarios')" data-nav="config-usuarios" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition">
+              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg>
+              <span>Usuários & Senhas</span>
+            </button>
+            <button type="button" onclick="window.navigate('configuracoes', 'github')" data-nav="config-github" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition">
+              <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+              <span>Config. Nuvem / Banco de Dados</span>
+            </button>
+            <button type="button" onclick="window.navigate('sobre')" data-nav="sobre" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition">
+              <span class="w-4 h-4 flex items-center justify-center rounded-full border border-current text-[10px] font-bold">i</span>
+              <span>Sobre o Sistema</span>
+            </button>
+          </div>
+        </nav>
+
+        <!-- Usuário Logado & Logout -->
+        <div class="p-4 border-t border-slate-800 bg-slate-950/40">
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <div class="w-9 h-9 rounded-full bg-brand-600/30 border border-brand-500/40 text-brand-300 flex items-center justify-center font-bold text-xs shrink-0" id="user-avatar-initials">
+                AD
+              </div>
+              <div class="min-w-0">
+                <p id="current-user-name" class="text-xs font-semibold text-white truncate">Administrador</p>
+                <p id="current-user-role" class="text-[11px] text-slate-400 truncate">Administrador</p>
+              </div>
+            </div>
+            <button type="button" onclick="window.logout()" title="Sair do Sistema" class="p-2 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/></svg>
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <!-- ÁREA DE CONTEÚDO PRINCIPAL -->
+      <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <!-- TOPBAR -->
+        <header class="bg-white border-b border-slate-200 px-4 sm:px-6 py-3 flex items-center justify-between gap-4 shrink-0">
+          <div class="flex items-center gap-3">
+            <button type="button" onclick="window.toggleMobileSidebar()" class="lg:hidden p-2 rounded-xl text-slate-600 hover:bg-slate-100">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+            </button>
+            <div>
+              <h1 id="page-title" class="text-lg sm:text-xl font-bold text-slate-800">Dashboard</h1>
+              <p id="page-subtitle" class="text-xs text-slate-500 hidden sm:block">Visão geral de vendas, estoque e resultados</p>
+            </div>
+          </div>
+
+          <!-- Status da sincronização em nuvem + ações rápidas -->
+          <div class="flex items-center gap-2 sm:gap-3">
+            <div id="sync-status-pill" onclick="window.navigate('configuracoes', 'github')" title="Clique para configurar sincronização em nuvem"
+              class="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition">
+              <span id="sync-dot" class="w-2 h-2 rounded-full bg-slate-400"></span>
+              <span id="sync-text" class="hidden sm:inline">Modo Local</span>
+            </div>
+
+            <button type="button" onclick="window.syncGithubNow()" id="btn-sync-now" title="Sincronizar com a nuvem agora"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-brand-50 text-brand-700 hover:bg-brand-100 border border-brand-200 transition">
+              <svg id="sync-spin-icon" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+              <span class="hidden md:inline">Sincronizar</span>
+            </button>
+
+            <button type="button" onclick="window.navigate('pdv')" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-brand-600 hover:bg-brand-700 text-white shadow-sm transition">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+              <span>Nova Venda</span>
+            </button>
+          </div>
+        </header>
+
+        <!-- VIEWPORT DINÂMICA DOS MÓDULOS -->
+        <main id="main-content" class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+          <!-- O conteúdo de cada aba será injetado via JS -->
+        </main>
+
+        <!-- Navegação inferior exclusiva para celulares -->
+        <nav id="mobile-bottom-nav" class="mobile-bottom-nav" aria-label="Navegação principal">
+          <button type="button" onclick="window.navigate('dashboard')" data-mobile-nav="dashboard"><span>⌂</span><small>Início</small></button>
+          <button type="button" onclick="window.navigate('pdv')" data-mobile-nav="pdv"><span>▣</span><small>PDV</small></button>
+          <button type="button" onclick="window.navigate('produtos')" data-mobile-nav="produtos"><span>▤</span><small>Produtos</small></button>
+          <button type="button" onclick="window.navigate('clientes')" data-mobile-nav="clientes"><span>♙</span><small>Fiado</small></button>
+          <button type="button" onclick="window.toggleMobileSidebar()" data-mobile-nav="mais"><span>•••</span><small>Mais</small></button>
+        </nav>
+
+        <!-- RODAPÉ FIXO OBRIGATÓRIO -->
+        <footer class="bg-white border-t border-slate-200 px-4 sm:px-6 py-2.5 text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2 shrink-0">
+          <div>
+            Desenvolvido por <strong class="text-slate-700 font-semibold">DJC Sistemas e Automações</strong>
+          </div>
+          <div class="flex items-center gap-3">
+            <span id="footer-last-sync" class="text-[11px] text-slate-400">Armazenamento Local Ativo</span>
+            <span class="px-2 py-0.5 rounded-md bg-brand-50 text-brand-700 font-mono font-semibold text-[11px] border border-brand-200">v1.02</span>
+          </div>
+        </footer>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL CONFIGURAÇÃO RÁPIDA NUVEM (ACESSÍVEL TAMBÉM PELA TELA DE LOGIN) -->
+  <!-- ===================================================================== -->
+  <div id="github-quick-modal" class="hidden fixed inset-0 z-[80] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-100">
+      <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+          <h3 class="font-bold text-base">Conectar Banco de Dados na Nuvem</h3>
+        </div>
+        <button type="button" onclick="window.closeGithubQuickModal()" class="text-slate-400 hover:text-white p-1">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="p-6 space-y-4">
+        <p class="text-xs text-slate-600 leading-relaxed">
+          Informe os dados de acesso ao serviço de nuvem onde o arquivo do banco de dados será lido e gravado automaticamente.
+        </p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Usuário / Organização (Owner)</label>
+            <input type="text" id="qm-gh-owner" placeholder="ex: djcsistemas" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:border-brand-500 outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Nome do Repositório</label>
+            <input type="text" id="qm-gh-repo" placeholder="ex: bazar-erp-db" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:border-brand-500 outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Branch</label>
+            <input type="text" id="qm-gh-branch" placeholder="main" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:border-brand-500 outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Caminho do Arquivo JSON</label>
+            <input type="text" id="qm-gh-path" placeholder="db.json" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:border-brand-500 outline-none" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Personal Access Token (PAT - permissão repo)</label>
+          <input type="password" id="qm-gh-token" placeholder="Token de acesso" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:border-brand-500 outline-none" />
+        </div>
+        <div class="flex flex-wrap items-center justify-between gap-2 pt-2">
+          <button type="button" onclick="window.saveQuickGithubAndPull()" class="flex-1 py-2.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold shadow-sm transition">
+            Salvar e Puxar Dados
+          </button>
+          <button type="button" onclick="window.initGithubStructureFromModal()" class="py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition">
+            Gerar Estrutura Inicial
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL GENÉRICO PARA FORMULÁRIOS E CUPOM NÃO FISCAL                    -->
+  <!-- ===================================================================== -->
+  <div id="generic-modal" class="hidden fixed inset-0 z-[70] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    <div id="generic-modal-box" class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden border border-slate-100 my-auto">
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+        <h3 id="generic-modal-title" class="font-bold text-base text-slate-800">Título</h3>
+        <button type="button" onclick="window.closeGenericModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div id="generic-modal-body" class="p-6 max-h-[80vh] overflow-y-auto"></div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL SCANNER DE CÓDIGO DE BARRAS VIA CÂMERA                          -->
+  <!-- ===================================================================== -->
+  <div id="barcode-scanner-modal" class="hidden fixed inset-0 z-[85] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
+      <div class="bg-slate-900 text-white px-5 py-3.5 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <svg class="w-5 h-5 text-brand-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z"/><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75zM6.75 16.5h.75v.75h-.75v-.75zM16.5 6.75h.75v.75h-.75v-.75zM13.5 13.5h.75v.75h-.75v-.75zM13.5 19.5h.75v.75h-.75v-.75zM19.5 13.5h.75v.75h-.75v-.75zM19.5 19.5h.75v.75h-.75v-.75zM16.5 16.5h.75v.75h-.75v-.75z"/></svg>
+          <div>
+            <h3 id="scanner-modal-title" class="font-bold text-sm">Leitor de Código de Barras</h3>
+            <p class="text-[11px] text-slate-400">Aponte a câmera para o código EAN / embalagem</p>
+          </div>
+        </div>
+        <button type="button" onclick="window.stopBarcodeScanner()" class="text-slate-400 hover:text-white p-1.5 rounded-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="p-5 space-y-4">
+        <div class="grid grid-cols-3 gap-1.5" aria-label="Modo do leitor">
+          <button type="button" onclick="window.setBarcodeScannerMode('auto')" data-scanner-mode="auto" class="scanner-mode-btn px-2 py-2 rounded-lg text-[11px] font-semibold bg-brand-600 text-white">Todos (Auto)</button>
+          <button type="button" onclick="window.setBarcodeScannerMode('barcode')" data-scanner-mode="barcode" class="scanner-mode-btn px-2 py-2 rounded-lg text-[11px] font-semibold bg-slate-100 text-slate-600">Cód. Barras</button>
+          <button type="button" onclick="window.setBarcodeScannerMode('qr')" data-scanner-mode="qr" class="scanner-mode-btn px-2 py-2 rounded-lg text-[11px] font-semibold bg-slate-100 text-slate-600">QR Code</button>
+        </div>
+        <div class="relative rounded-xl overflow-hidden bg-slate-900 border-2 border-brand-500/40 min-h-[220px] flex items-center justify-center">
+          <div id="barcode-reader-viewport" class="w-full"></div>
+          <video id="native-barcode-video" class="hidden w-full h-56 object-cover" autoplay playsinline muted></video>
+        </div>
+        <div id="scanner-status-msg" class="text-xs text-center text-slate-600 font-medium bg-slate-100 py-2 px-3 rounded-xl">
+          Iniciando câmera... Permita o acesso quando solicitado.
+        </div>
+        <div class="flex items-center gap-2">
+          <input type="text" id="scanner-manual-input" placeholder="Ou digite/bipe o código manualmente..."
+            onkeydown="if(event.key==='Enter'){ event.preventDefault(); window.handleManualScannerInput(); }"
+            class="flex-1 px-3 py-2 rounded-xl border border-slate-200 text-xs font-mono outline-none focus:border-brand-500" />
+          <button type="button" onclick="window.handleManualScannerInput()" class="px-3.5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold">
+            Usar
+          </button>
+        </div>
+        <!-- Atalhos rápidos de teste de EAN para validação imediata -->
+        <div class="pt-2 border-t border-slate-100">
+          <p class="text-[11px] text-slate-400 mb-1.5">Códigos de exemplo para teste rápido:</p>
+          <div class="flex flex-wrap gap-1.5">
+            <button type="button" onclick="window.useSampleBarcode('7899846013247')" class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-[11px] font-mono text-slate-700">7899846013247</button>
+            <button type="button" onclick="window.useSampleBarcode('7908132248120')" class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-[11px] font-mono text-slate-700">7908132248120</button>
+            <button type="button" onclick="window.useSampleBarcode('7891033472109')" class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-[11px] font-mono text-slate-700">7891033472109</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- JAVASCRIPT COMPLETO E RESILIENTE DO SISTEMA ERP v1.01                 -->
+  <!-- ===================================================================== -->
+  <script>
+    (function() {
+      'use strict';
+
+      /**
+       * =====================================================================
+       * 0. CARREGAMENTO ASSÍNCRONO NÃO-BLOQUEANTE DO SCANNER HTML5-QRCODE
+       * =====================================================================
+       */
+      function loadExternalScannerLibAsync() {
+        try {
+          if (typeof window.Html5Qrcode !== 'undefined') return;
+          const script = document.createElement('script');
+          script.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
+          script.async = true;
+          script.onerror = function() {
+            console.warn('Biblioteca html5-qrcode indisponível offline; usando fallback nativo/USB.');
+          };
+          document.head.appendChild(script);
+        } catch (e) {
+          console.warn('Falha não crítica ao injetar script scanner:', e);
+        }
+      }
+
+      /**
+       * =====================================================================
+       * 1. UTILITÁRIOS DE UI, FORMATAÇÃO E STORAGE RESILIENTE
+       * =====================================================================
+       */
+      const LOCAL_DB_KEY = 'djc_bazar_erp_db_v1';
+      const LOCAL_GH_CFG_KEY = 'djc_bazar_erp_gh_cfg_v1';
+      const SESSION_USER_KEY = 'djc_bazar_erp_session_v1';
+
+      // Fallback de memória caso localStorage esteja bloqueado no sandbox/iframe
+      const memoryStorageFallback = {};
+      function safeGetItem(key) {
+        try {
+          return window.localStorage.getItem(key);
+        } catch (e) {
+          return memoryStorageFallback[key] || null;
+        }
+      }
+      function safeSetItem(key, val) {
+        try {
+          window.localStorage.setItem(key, val);
+        } catch (e) {
+          memoryStorageFallback[key] = val;
+        }
+      }
+      function safeSessionGet(key) {
+        try {
+          return window.sessionStorage.getItem(key);
+        } catch (e) {
+          return memoryStorageFallback['sess_' + key] || null;
+        }
+      }
+      function safeSessionSet(key, val) {
+        try {
+          window.sessionStorage.setItem(key, val);
+        } catch (e) {
+          memoryStorageFallback['sess_' + key] = val;
+        }
+      }
+      function safeSessionRemove(key) {
+        try {
+          window.sessionStorage.removeItem(key);
+        } catch (e) {
+          delete memoryStorageFallback['sess_' + key];
+        }
+      }
+
+      function formatBRL(val) {
+        const num = Number(val || 0);
+        return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      }
+
+      function formatDateBR(dateStr) {
+        if (!dateStr) return '-';
+        if (dateStr.includes('T')) {
+          return new Date(dateStr).toLocaleDateString('pt-BR');
+        }
+        const parts = dateStr.split('-');
+        if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        return dateStr;
+      }
+
+      function getBrandBadge(marca) {
+        const map = {
+          'Natura': 'bg-orange-100 text-orange-800 border-orange-200',
+          'Avon': 'bg-pink-100 text-pink-800 border-pink-200',
+          'Eudora': 'bg-purple-100 text-purple-800 border-purple-200',
+          'Presentes': 'bg-sky-100 text-sky-800 border-sky-200',
+          'Papelaria/Brinquedos': 'bg-teal-100 text-teal-800 border-teal-200'
+        };
+        const cls = map[marca] || 'bg-slate-100 text-slate-700 border-slate-200';
+        return `<span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold border ${cls}">${marca || 'Geral'}</span>`;
+      }
+
+      function showToast(message, type = 'info') {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+
+        const styles = {
+          success: 'bg-emerald-600 text-white border-emerald-500',
+          error: 'bg-rose-600 text-white border-rose-500',
+          warning: 'bg-amber-600 text-white border-amber-500',
+          info: 'bg-slate-900 text-white border-slate-700'
+        };
+
+        const toast = document.createElement('div');
+        toast.className = `pointer-events-auto px-4 py-3 rounded-2xl shadow-xl border text-xs font-semibold flex items-center justify-between gap-3 transition-all duration-300 ${styles[type] || styles.info}`;
+        toast.innerHTML = `
+          <span>${message}</span>
+          <button type="button" class="opacity-80 hover:opacity-100 font-bold text-sm leading-none">&times;</button>
+        `;
+        toast.querySelector('button').onclick = () => toast.remove();
+        container.appendChild(toast);
+
+        setTimeout(() => {
+          toast.style.opacity = '0';
+          setTimeout(() => toast.remove(), 300);
+        }, 3800);
+      }
+
+      function showConfirm(title, message, onConfirm) {
+        const modal = document.getElementById('confirm-modal');
+        document.getElementById('confirm-title').textContent = title;
+        document.getElementById('confirm-message').textContent = message;
+        modal.classList.remove('hidden');
+
+        const okBtn = document.getElementById('confirm-ok-btn');
+        const cancelBtn = document.getElementById('confirm-cancel-btn');
+
+        const cleanup = () => {
+          modal.classList.add('hidden');
+          okBtn.onclick = null;
+          cancelBtn.onclick = null;
+        };
+
+        cancelBtn.onclick = cleanup;
+        okBtn.onclick = () => {
+          cleanup();
+          if (typeof onConfirm === 'function') onConfirm();
+        };
+      }
+
+      function openGenericModal(title, htmlBody, maxWidthClass = 'max-w-2xl') {
+        const modal = document.getElementById('generic-modal');
+        const box = document.getElementById('generic-modal-box');
+        box.className = `bg-white rounded-2xl shadow-2xl ${maxWidthClass} w-full overflow-hidden border border-slate-100 my-auto`;
+        document.getElementById('generic-modal-title').textContent = title;
+        document.getElementById('generic-modal-body').innerHTML = htmlBody;
+        modal.classList.remove('hidden');
+      }
+
+      function closeGenericModal() {
+        const modal = document.getElementById('generic-modal');
+        if (modal) modal.classList.add('hidden');
+      }
+
+      /**
+       * =====================================================================
+       * 2. BANCO DE DADOS INDEPENDENTE (NUVEM REST API + LOCALSTORAGE)
+       * =====================================================================
+       */
+      function getDefaultDatabase() {
+        const today = new Date().toISOString().split('T')[0];
+        return {
+          meta: {
+            version: '1.02',
+            updatedAt: new Date().toISOString(),
+            developer: 'DJC Sistemas e Automações'
+          },
+          loja: {
+            nomeFantasia: 'Bazar & Perfumaria Encanto',
+            razaoSocial: 'Bazar e Variedades Encanto ME',
+            cnpj: '00.000.000/0001-00',
+            telefone: '(51) 99999-0000',
+            endereco: 'Rua Principal, 123 - Centro',
+            mensagemRecibo: 'Obrigado pela preferência! Trocas em até 7 dias com este comprovante.',
+            logoUrl: ''
+          },
+          usuarios: [
+            {
+              id: 'usr-admin',
+              nome: 'Administrador Geral',
+              usuario: 'admin',
+              senha: '1234',
+              nivel: 'Administrador',
+              ativo: true
+            }
+          ],
+          produtos: [
+            {
+              id: 'prd-1',
+              sku: 'NAT-001',
+              codigoBarras: '7899846013247',
+              nome: 'Deo Parfum Essencial Oud Feminino 100ml',
+              marca: 'Natura',
+              categoria: 'Perfumaria',
+              custo: 129.90,
+              preco: 219.90,
+              estoque: 6,
+              estoqueMin: 2
+            },
+            {
+              id: 'prd-2',
+              sku: 'NAT-002',
+              codigoBarras: '7908132248120',
+              nome: 'Hidratante Corporal Tododia Macadâmia 400ml',
+              marca: 'Natura',
+              categoria: 'Corpo & Banho',
+              custo: 38.50,
+              preco: 64.90,
+              estoque: 12,
+              estoqueMin: 4
+            },
+            {
+              id: 'prd-3',
+              sku: 'AVN-001',
+              codigoBarras: '7909189123456',
+              nome: 'Colônia Far Away Original 50ml',
+              marca: 'Avon',
+              categoria: 'Perfumaria',
+              custo: 49.00,
+              preco: 84.90,
+              estoque: 8,
+              estoqueMin: 3
+            },
+            {
+              id: 'prd-4',
+              sku: 'EUD-001',
+              codigoBarras: '7891033472109',
+              nome: 'Combo Siàge Eudora Shampoo + Condicionador',
+              marca: 'Eudora',
+              categoria: 'Cabelos',
+              custo: 52.00,
+              preco: 89.90,
+              estoque: 2,
+              estoqueMin: 3
+            },
+            {
+              id: 'prd-5',
+              sku: 'PRE-001',
+              codigoBarras: '7898541200154',
+              nome: 'Caneca Porcelana Decorada Presente + Caixa',
+              marca: 'Presentes',
+              categoria: 'Presentes & Bazar',
+              custo: 16.00,
+              preco: 34.90,
+              estoque: 15,
+              estoqueMin: 5
+            }
+          ],
+          clientes: [
+            {
+              id: 'cli-1',
+              nome: 'Mariana Silva',
+              telefone: '51998887766',
+              cpf: '123.456.789-00',
+              endereco: 'Rua das Flores, 45',
+              aniversario: '1992-05-14'
+            },
+            {
+              id: 'cli-2',
+              nome: 'Carlos Eduardo Souza',
+              telefone: '51997776655',
+              cpf: '',
+              endereco: 'Av. Brasil, 890',
+              aniversario: '1988-11-22'
+            }
+          ],
+          vendas: [
+            {
+              id: 'VND-1001',
+              data: new Date().toISOString(),
+              clienteId: 'cli-1',
+              clienteNome: 'Mariana Silva',
+              itens: [
+                { produtoId: 'prd-2', sku: 'NAT-002', nome: 'Hidratante Corporal Tododia Macadâmia 400ml', marca: 'Natura', qtd: 1, preco: 64.90, custo: 38.50 }
+              ],
+              subtotal: 64.90,
+              desconto: 0,
+              total: 64.90,
+              formaPagamento: 'Pix',
+              statusPagamento: 'Pago',
+              vencimento: '',
+              valorPago: 64.90,
+              vendedor: 'Administrador Geral'
+            }
+          ],
+          encomendas: [
+            {
+              id: 'ENC-01',
+              data: today,
+              ciclo: 'Ciclo 18/2026',
+              marca: 'Natura',
+              produto: 'Kit Kaiak Clássico Masculino Presente',
+              qtd: 1,
+              valorTotal: 159.90,
+              sinalPago: 50.00,
+              clienteNome: 'Carlos Eduardo Souza',
+              clienteTelefone: '51997776655',
+              status: 'Pedido Feito'
+            }
+          ],
+          financeiro: [
+            {
+              id: 'FIN-1',
+              data: today,
+              tipo: 'Entrada',
+              categoria: 'Vendas PDV',
+              descricao: 'Venda #VND-1001 - Mariana Silva',
+              valor: 64.90,
+              forma: 'Pix'
+            },
+            {
+              id: 'FIN-2',
+              data: today,
+              tipo: 'Saída',
+              categoria: 'Fornecedores (Revistas)',
+              descricao: 'Boleto Pedido Natura Ciclo 17',
+              valor: 320.00,
+              forma: 'Boleto / Pix'
+            }
+          ]
+        };
+      }
+
+      let DB = getDefaultDatabase();
+      let githubConfig = {
+        owner: '',
+        repo: '',
+        branch: 'main',
+        path: 'db.json',
+        token: '',
+        lastSha: ''
+      };
+      let currentUser = null;
+      let currentRoute = 'dashboard';
+      let currentSettingsTab = 'loja';
+
+      // Estado do PDV
+      let pdvCart = [];
+      let pdvBrandFilter = 'Todos';
+      let pdvSearchQuery = '';
+
+      function utf8ToBase64(str) {
+        return btoa(unescape(encodeURIComponent(str)));
+      }
+      function base64ToUtf8(str) {
+        return decodeURIComponent(escape(atob(str.replace(/\s/g, ''))));
+      }
+
+      function loadGithubConfig() {
+        try {
+          const saved = safeGetItem(LOCAL_GH_CFG_KEY);
+          if (saved) {
+            githubConfig = { ...githubConfig, ...JSON.parse(saved) };
+          }
+        } catch (e) {
+          console.error('Erro na configuração da nuvem:', e);
+        }
+      }
+
+      function saveGithubConfigToStorage() {
+        safeSetItem(LOCAL_GH_CFG_KEY, JSON.stringify(githubConfig));
+        updateSyncStatusUI();
+      }
+
+      function isGithubConfigured() {
+        return Boolean(githubConfig.owner && githubConfig.repo && githubConfig.token && githubConfig.path);
+      }
+
+      function loadLocalDB() {
+        try {
+          const raw = safeGetItem(LOCAL_DB_KEY);
+          const def = getDefaultDatabase();
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            DB = {
+              ...def,
+              ...parsed,
+              loja: { ...def.loja, ...(parsed.loja || {}) },
+              usuarios: Array.isArray(parsed.usuarios) ? parsed.usuarios : def.usuarios,
+              produtos: Array.isArray(parsed.produtos) ? parsed.produtos : [],
+              clientes: Array.isArray(parsed.clientes) ? parsed.clientes : [],
+              vendas: Array.isArray(parsed.vendas) ? parsed.vendas : [],
+              encomendas: Array.isArray(parsed.encomendas) ? parsed.encomendas : [],
+              financeiro: Array.isArray(parsed.financeiro) ? parsed.financeiro : []
+            };
+          } else {
+            DB = def;
+            safeSetItem(LOCAL_DB_KEY, JSON.stringify(DB));
+          }
+        } catch (e) {
+          console.error('Erro ao ler DB local:', e);
+          DB = getDefaultDatabase();
+        }
+      }
+
+      async function saveDB(pushToRemote = true) {
+        DB.meta = DB.meta || {};
+        DB.meta.updatedAt = new Date().toISOString();
+        DB.meta.version = '1.02';
+        // O salvamento local é imediato e independente da disponibilidade da nuvem.
+        safeSetItem(LOCAL_DB_KEY, JSON.stringify(DB));
+        applyWhiteLabelBranding();
+
+        let cloudSaved = null;
+        if (pushToRemote) {
+          if (isGithubConfigured()) {
+            cloudSaved = await pushDBToGithub(true);
+          } else {
+            cloudSaved = false;
+          }
+        }
+        return { localSaved: true, cloudSaved, cloudConfigured: isGithubConfigured() };
+      }
+
+      async function pullDBFromGithub(silent = false) {
+        if (!isGithubConfigured()) {
+          if (!silent) showToast('Configure o acesso à nuvem primeiro.', 'warning');
+          return false;
+        }
+
+        setSyncIndicator('syncing', 'Baixando dados da nuvem...');
+        try {
+          const url = `https://api.github.com/repos/${githubConfig.owner}/${githubConfig.repo}/contents/${githubConfig.path}?ref=${githubConfig.branch || 'main'}&t=${Date.now()}`;
+          const res = await fetch(url, {
+            headers: {
+              'Authorization': `Bearer ${githubConfig.token}`,
+              'Accept': 'application/vnd.github+json'
+            }
+          });
+
+          if (res.status === 404) {
+            setSyncIndicator('warning', 'Arquivo não encontrado');
+            if (!silent) showToast('Arquivo db.json não encontrado no repositório. Clique em "Gerar Estrutura Inicial".', 'warning');
+            return false;
+          }
+
+          if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            throw new Error(errData.message || `Erro HTTP ${res.status}`);
+          }
+
+          const data = await res.json();
+          githubConfig.lastSha = data.sha;
+          saveGithubConfigToStorage();
+
+          const decodedContent = base64ToUtf8(data.content);
+          const remoteDB = JSON.parse(decodedContent);
+          const defaults = getDefaultDatabase();
+          // Normaliza o banco remoto sem descartar uma lista de usuários vazia
+          // (ela pode ser intencional e não deve ser substituída silenciosamente).
+          DB = {
+            ...defaults,
+            ...remoteDB,
+            meta: { ...defaults.meta, ...(remoteDB.meta || {}) },
+            loja: { ...defaults.loja, ...(remoteDB.loja || {}) },
+            usuarios: Array.isArray(remoteDB.usuarios) ? remoteDB.usuarios : defaults.usuarios,
+            produtos: Array.isArray(remoteDB.produtos) ? remoteDB.produtos : [],
+            clientes: Array.isArray(remoteDB.clientes) ? remoteDB.clientes : [],
+            vendas: Array.isArray(remoteDB.vendas) ? remoteDB.vendas : [],
+            encomendas: Array.isArray(remoteDB.encomendas) ? remoteDB.encomendas : [],
+            financeiro: Array.isArray(remoteDB.financeiro) ? remoteDB.financeiro : []
+          };
+          safeSetItem(LOCAL_DB_KEY, JSON.stringify(DB));
+          applyWhiteLabelBranding();
+
+          const timeStr = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+          setSyncIndicator('synced', `Nuvem OK (${timeStr})`);
+          if (!silent) showToast('Banco de dados sincronizado com a nuvem com sucesso!', 'success');
+
+          if (currentUser) renderCurrentRoute();
+          return true;
+        } catch (err) {
+          console.error('Erro ao baixar dados da nuvem:', err);
+          setSyncIndicator('error', 'Erro na Sincronização');
+          if (!silent) showToast(`Falha ao ler dados da nuvem: ${err.message}`, 'error');
+          return false;
+        }
+      }
+
+      async function pushDBToGithub(silent = false) {
+        if (!isGithubConfigured()) {
+          if (!silent) showToast('Nuvem não configurada. Dados salvos localmente.', 'info');
+          return false;
+        }
+
+        setSyncIndicator('syncing', 'Salvando na nuvem...');
+        try {
+          const checkUrl = `https://api.github.com/repos/${githubConfig.owner}/${githubConfig.repo}/contents/${githubConfig.path}?ref=${githubConfig.branch || 'main'}&t=${Date.now()}`;
+          const checkRes = await fetch(checkUrl, {
+            headers: {
+              'Authorization': `Bearer ${githubConfig.token}`,
+              'Accept': 'application/vnd.github+json'
+            }
+          });
+
+          let shaToUse = githubConfig.lastSha || undefined;
+          if (checkRes.ok) {
+            const checkData = await checkRes.json();
+            shaToUse = checkData.sha;
+          } else if (checkRes.status === 404) {
+            shaToUse = undefined;
+          }
+
+          const putUrl = `https://api.github.com/repos/${githubConfig.owner}/${githubConfig.repo}/contents/${githubConfig.path}`;
+          const bodyPayload = {
+            message: `ERP Bazar v1.01 - Atualização ${new Date().toLocaleString('pt-BR')}`,
+            content: utf8ToBase64(JSON.stringify(DB, null, 2)),
+            branch: githubConfig.branch || 'main'
+          };
+          if (shaToUse) bodyPayload.sha = shaToUse;
+
+          const putRes = await fetch(putUrl, {
+            method: 'PUT',
+            headers: {
+              'Authorization': `Bearer ${githubConfig.token}`,
+              'Accept': 'application/vnd.github+json',
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(bodyPayload)
+          });
+
+          if (!putRes.ok) {
+            const errData = await putRes.json().catch(() => ({}));
+            throw new Error(errData.message || `Erro HTTP ${putRes.status}`);
+          }
+
+          const resultData = await putRes.json();
+          if (resultData.content && resultData.content.sha) {
+            githubConfig.lastSha = resultData.content.sha;
+            saveGithubConfigToStorage();
+          }
+
+          const timeStr = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+          setSyncIndicator('synced', `Sincronizado (${timeStr})`);
+          if (!silent) showToast('Dados gravados na nuvem com sucesso!', 'success');
+          return true;
+        } catch (err) {
+          console.error('Erro ao enviar dados para a nuvem:', err);
+          setSyncIndicator('error', 'Falha ao Salvar');
+          if (!silent) showToast(`Erro ao gravar dados na nuvem: ${err.message}`, 'error');
+          return false;
+        }
+      }
+
+      async function syncGithubNow() {
+        if (!isGithubConfigured()) {
+          showToast('Configure a sincronização em nuvem na aba Config. Nuvem / Banco de Dados.', 'warning');
+          navigate('configuracoes', 'github');
+          return;
+        }
+        const icon = document.getElementById('sync-spin-icon');
+        if (icon) icon.classList.add('animate-spin');
+        await pullDBFromGithub(false);
+        if (icon) icon.classList.remove('animate-spin');
+      }
+
+      function setSyncIndicator(state, label) {
+        const dot = document.getElementById('sync-dot');
+        const text = document.getElementById('sync-text');
+        const footerSync = document.getElementById('footer-last-sync');
+        const loginBadge = document.getElementById('login-sync-badge');
+
+        if (dot) {
+          dot.className = 'w-2 h-2 rounded-full ' + (
+            state === 'synced' ? 'bg-emerald-500' :
+            state === 'syncing' ? 'bg-amber-500 animate-pulse' :
+            (state === 'error' || state === 'warning') ? 'bg-rose-500' : 'bg-slate-400'
+          );
+        }
+        if (text) text.textContent = label;
+        if (footerSync) footerSync.textContent = `Status BD: ${label}`;
+        if (loginBadge) {
+          const dotColor = state === 'synced' ? 'bg-emerald-500' : (isGithubConfigured() ? 'bg-brand-500' : 'bg-slate-400');
+          loginBadge.innerHTML = `<span class="w-2 h-2 rounded-full ${dotColor}"></span> ${label}`;
+        }
+      }
+
+      function updateSyncStatusUI() {
+        if (isGithubConfigured()) {
+          setSyncIndicator('synced', `Nuvem: ${githubConfig.repo}`);
+        } else {
+          setSyncIndicator('local', 'Modo Local (Offline)');
+        }
+      }
+
+      /**
+       * =====================================================================
+       * 3. WHITE-LABEL, LOGIN & NAVEGAÇÃO LATERAL
+       * =====================================================================
+       */
+      function applyWhiteLabelBranding() {
+        if (!DB || !DB.loja) return;
+        const nome = DB.loja.nomeFantasia || 'Bazar & Perfumaria';
+        const logoUrl = DB.loja.logoUrl || '';
+        const defaultGiftSvg = `<svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 109.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1114.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/></svg>`;
+
+        document.title = `${nome} - ERP v1.01 | DJC Sistemas`;
+
+        const loginName = document.getElementById('login-store-name');
+        const loginLogo = document.getElementById('login-logo-wrapper');
+        if (loginName) loginName.textContent = nome;
+        if (loginLogo) {
+          loginLogo.innerHTML = logoUrl
+            ? `<img src="${logoUrl}" alt="Logo" class="w-full h-full object-cover" onerror="this.style.display='none'">`
+            : defaultGiftSvg;
+        }
+
+        const sideName = document.getElementById('sidebar-store-name');
+        const sideSub = document.getElementById('sidebar-store-sub');
+        const sideLogo = document.getElementById('sidebar-logo');
+        if (sideName) sideName.textContent = nome;
+        if (sideSub) sideSub.textContent = DB.loja.telefone || 'ERP Gestão Comercial';
+        if (sideLogo) {
+          sideLogo.innerHTML = logoUrl
+            ? `<img src="${logoUrl}" alt="Logo" class="w-full h-full object-cover" onerror="this.style.display='none'">`
+            : defaultGiftSvg;
+        }
+      }
+
+      function fillDemoCredentials() {
+        const u = document.getElementById('login-user');
+        const p = document.getElementById('login-pass');
+        if (u) u.value = 'admin';
+        if (p) p.value = '1234';
+        showToast('Credenciais de demonstração preenchidas!', 'info');
+      }
+
+      function toggleLoginPassword() {
+        const input = document.getElementById('login-pass');
+        if (!input) return;
+        input.type = input.type === 'password' ? 'text' : 'password';
+      }
+
+      function handleLogin(e) {
+        if (e && e.preventDefault) e.preventDefault();
+        try {
+          const userVal = (document.getElementById('login-user').value || '').trim();
+          const passVal = document.getElementById('login-pass').value || '';
+          const errBox = document.getElementById('login-error-box');
+          const errText = document.getElementById('login-error-text');
+
+          if (!DB || !Array.isArray(DB.usuarios)) {
+            loadLocalDB();
+          }
+
+          const found = DB.usuarios.find(u =>
+            u.usuario.toLowerCase() === userVal.toLowerCase() && u.senha === passVal
+          );
+
+          if (!found) {
+            errText.textContent = 'Usuário ou senha incorretos. Use admin / 1234 no primeiro acesso.';
+            errBox.classList.remove('hidden');
+            return;
+          }
+          if (found.ativo === false) {
+            errText.textContent = 'Este usuário está desativado. Contate o administrador.';
+            errBox.classList.remove('hidden');
+            return;
+          }
+
+          errBox.classList.add('hidden');
+          currentUser = found;
+          safeSessionSet(SESSION_USER_KEY, JSON.stringify(found));
+          enterApp();
+        } catch (err) {
+          console.error('Erro no login:', err);
+          showToast('Erro ao processar login: ' + err.message, 'error');
+        }
+      }
+
+      function enterApp() {
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('app-shell').classList.remove('hidden');
+
+        document.getElementById('current-user-name').textContent = currentUser.nome;
+        document.getElementById('current-user-role').textContent = currentUser.nivel;
+        const initials = currentUser.nome.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+        document.getElementById('user-avatar-initials').textContent = initials || 'AD';
+
+        navigate('dashboard');
+      }
+
+      function logout() {
+        showConfirm('Sair do Sistema', 'Deseja encerrar sua sessão atual?', () => {
+          currentUser = null;
+          safeSessionRemove(SESSION_USER_KEY);
+          const passInput = document.getElementById('login-pass');
+          if (passInput) passInput.value = '';
+          document.getElementById('app-shell').classList.add('hidden');
+          document.getElementById('login-screen').classList.remove('hidden');
+        });
+      }
+
+      function toggleMobileSidebar(forceClose = false) {
+        const sidebar = document.getElementById('sidebar');
+        const backdrop = document.getElementById('sidebar-backdrop');
+        if (!sidebar || !backdrop) return;
+
+        if (forceClose) {
+          sidebar.classList.add('-translate-x-full');
+          backdrop.classList.add('hidden');
+          return;
+        }
+
+        const isClosed = sidebar.classList.contains('-translate-x-full');
+        if (isClosed) {
+          sidebar.classList.remove('-translate-x-full');
+          backdrop.classList.remove('hidden');
+        } else {
+          sidebar.classList.add('-translate-x-full');
+          backdrop.classList.add('hidden');
+        }
+      }
+
+      function navigate(route, subTab = null) {
+        try {
+          currentRoute = route;
+          if (subTab) currentSettingsTab = subTab;
+
+          // Fechar menu mobile ao clicar em um item
+          toggleMobileSidebar(true);
+
+          // Atualizar destaque visual dos botões do menu lateral
+          const activeNavKey = route === 'configuracoes' ? `config-${currentSettingsTab}` : route;
+          document.querySelectorAll('.nav-btn').forEach(btn => {
+            const btnKey = btn.getAttribute('data-nav');
+            if (btnKey === activeNavKey) {
+              btn.className = 'nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold bg-brand-600 text-white shadow-md shadow-brand-600/20 transition';
+            } else {
+              btn.className = 'nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition';
+            }
+          });
+
+          const titles = {
+            dashboard: ['Dashboard Geral', 'Resumo financeiro, estoque crítico e vendas por marca'],
+            pdv: ['PDV / Frente de Caixa', 'Vendas rápidas com leitor de código de barras, cupom e WhatsApp'],
+            produtos: ['Produtos & Estoque', 'Catálogo Natura, Avon, Eudora e Presentes com busca por EAN'],
+            clientes: ['Clientes & Crediário', 'Base de clientes e controle de contas a receber (fiado)'],
+            encomendas: ['Encomendas de Revista', 'Pedidos por ciclo/campanha para clientes'],
+            financeiro: ['Fluxo de Caixa', 'Entradas, saídas e pagamento de boletos das revistas'],
+            configuracoes: ['Configurações do Sistema', 'Dados da loja (White-label), usuários e sincronização'],
+            sobre: ['Sobre o Sistema', 'Recursos, dispositivo e licenciamento DJC']
+          };
+
+          const [title, sub] = titles[route] || ['ERP Bazar', 'Gestão Comercial'];
+          document.getElementById('page-title').textContent = title;
+          document.getElementById('page-subtitle').textContent = sub;
+
+          document.querySelectorAll('[data-mobile-nav]').forEach(b => b.classList.toggle('active', b.getAttribute('data-mobile-nav') === (route === 'clientes' ? 'clientes' : route)));
+          renderCurrentRoute();
+        } catch (err) {
+          console.error('Erro na navegação:', err);
+          showToast('Erro ao abrir tela: ' + err.message, 'error');
+        }
+      }
+
+      function renderCurrentRoute() {
+        const container = document.getElementById('main-content');
+        if (!container) return;
+
+        if (currentRoute === 'dashboard') renderDashboard(container);
+        else if (currentRoute === 'pdv') renderPDV(container);
+        else if (currentRoute === 'produtos') renderProdutos(container);
+        else if (currentRoute === 'clientes') renderClientes(container);
+        else if (currentRoute === 'encomendas') renderEncomendas(container);
+        else if (currentRoute === 'financeiro') renderFinanceiro(container);
+        else if (currentRoute === 'configuracoes') renderConfiguracoes(container);
+        else if (currentRoute === 'sobre') renderSobre(container);
+        else renderDashboard(container);
+      }
+
+      // Modal rápido nuvem na tela de Login
+      function openGithubModalFromLogin() {
+        document.getElementById('qm-gh-owner').value = githubConfig.owner || '';
+        document.getElementById('qm-gh-repo').value = githubConfig.repo || '';
+        document.getElementById('qm-gh-branch').value = githubConfig.branch || 'main';
+        document.getElementById('qm-gh-path').value = githubConfig.path || 'db.json';
+        document.getElementById('qm-gh-token').value = githubConfig.token || '';
+        document.getElementById('github-quick-modal').classList.remove('hidden');
+      }
+
+      function closeGithubQuickModal() {
+        document.getElementById('github-quick-modal').classList.add('hidden');
+      }
+
+      async function saveQuickGithubAndPull() {
+        githubConfig.owner = document.getElementById('qm-gh-owner').value.trim();
+        githubConfig.repo = document.getElementById('qm-gh-repo').value.trim();
+        githubConfig.branch = document.getElementById('qm-gh-branch').value.trim() || 'main';
+        githubConfig.path = document.getElementById('qm-gh-path').value.trim() || 'db.json';
+        githubConfig.token = document.getElementById('qm-gh-token').value.trim();
+        saveGithubConfigToStorage();
+
+        const ok = await pullDBFromGithub(false);
+        if (ok) closeGithubQuickModal();
+      }
+
+      async function initGithubStructureFromModal() {
+        githubConfig.owner = document.getElementById('qm-gh-owner').value.trim();
+        githubConfig.repo = document.getElementById('qm-gh-repo').value.trim();
+        githubConfig.branch = document.getElementById('qm-gh-branch').value.trim() || 'main';
+        githubConfig.path = document.getElementById('qm-gh-path').value.trim() || 'db.json';
+        githubConfig.token = document.getElementById('qm-gh-token').value.trim();
+        saveGithubConfigToStorage();
+
+        if (!isGithubConfigured()) {
+          showToast('Preencha todos os campos de acesso à nuvem antes de gerar a estrutura.', 'warning');
+          return;
+        }
+        const ok = await pushDBToGithub(false);
+        if (ok) closeGithubQuickModal();
+      }
+
+      /**
+       * =====================================================================
+       * 4. MÓDULO: DASHBOARD
+       * =====================================================================
+       */
+      function renderSobre(container) {
+        const ua = navigator.userAgent || 'Dispositivo não identificado';
+        const mobile = /Android|iPhone|iPad|iPod|Mobile/i.test(ua) || window.matchMedia('(max-width: 767px)').matches;
+        const device = mobile ? 'Celular / Tablet' : 'Computador (Desktop)';
+        const browser = /Edg\//.test(ua) ? 'Microsoft Edge' : /Chrome\//.test(ua) ? 'Google Chrome' : /Firefox\//.test(ua) ? 'Mozilla Firefox' : /Safari\//.test(ua) ? 'Safari' : 'Navegador identificado pelo sistema';
+        container.innerHTML = `
+          <section class="bg-gradient-to-br from-slate-950 via-brand-950 to-indigo-950 text-white rounded-2xl p-6 sm:p-8 shadow-lg">
+            <div class="flex items-center gap-4"><div class="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center text-2xl font-black">DJC</div><div><p class="text-xs uppercase tracking-widest text-brand-200">ERP Bazar & Perfumaria</p><h2 class="text-2xl font-extrabold">Sobre o Sistema</h2><p class="text-xs text-brand-200 mt-1">Versão 1.02</p></div></div>
+            <p class="mt-5 max-w-3xl text-sm leading-relaxed text-slate-200">Uma solução de gestão comercial para organizar vendas, produtos, estoque, clientes, crediário, encomendas e fluxo de caixa em uma única plataforma.</p>
+          </section>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <article class="bg-white border border-slate-200 rounded-2xl p-5"><h3 class="font-bold text-slate-800 mb-2">Recursos do sistema</h3><ul class="text-sm text-slate-600 space-y-2"><li>✓ PDV e emissão de recibo não fiscal</li><li>✓ Cadastro de produtos, códigos de barras e QR Code</li><li>✓ Controle de estoque e alertas de estoque mínimo</li><li>✓ Clientes, vendas fiadas e recebimentos</li><li>✓ Encomendas de revistas e fluxo de caixa</li><li>✓ Backup, sincronização e gestão de usuários</li></ul></article>
+            <article class="bg-white border border-slate-200 rounded-2xl p-5"><h3 class="font-bold text-slate-800 mb-3">Dispositivo ativo</h3><div class="space-y-2 text-sm"><p><span class="text-slate-500">Tipo:</span> <strong>${device}</strong></p><p><span class="text-slate-500">Navegador:</span> <strong>${browser}</strong></p><p><span class="text-slate-500">Tela:</span> <strong>${window.screen.width} × ${window.screen.height}</strong></p><p><span class="text-slate-500">Interface:</span> <strong>${mobile ? 'Navegação móvel otimizada' : 'Menu lateral e tabelas completas'}</strong></p></div></article>
+            <article class="bg-white border border-slate-200 rounded-2xl p-5"><h3 class="font-bold text-slate-800 mb-2">Licenciamento White-Label</h3><p class="text-sm text-slate-600 leading-relaxed">A identidade visual e os dados comerciais podem ser configurados para a realidade de cada estabelecimento, conforme o licenciamento contratado.</p></article>
+            <article class="bg-white border border-slate-200 rounded-2xl p-5"><h3 class="font-bold text-slate-800 mb-2">Sincronização segura em nuvem</h3><p class="text-sm text-slate-600 leading-relaxed">O sistema oferece integração de sincronização remota do banco de dados, permitindo manter informações atualizadas entre dispositivos quando a conexão estiver configurada. Recomenda-se manter cópias de segurança periódicas.</p></article>
+          </div>
+          <div class="text-center py-7"><p class="text-sm text-slate-500">Desenvolvido e mantido por</p><p class="text-lg font-extrabold text-brand-700">DJC Sistemas e Automações</p><p class="text-xs text-slate-400 mt-1">ERP Bazar & Perfumaria • v1.02</p></div>`;
+      }
+
+      function renderDashboard(container) {
+        const totalFaturado = DB.vendas.reduce((acc, v) => acc + Number(v.total || 0), 0);
+        const totalFiado = DB.vendas
+          .filter(v => v.statusPagamento === 'Pendente')
+          .reduce((acc, v) => acc + (Number(v.total || 0) - Number(v.valorPago || 0)), 0);
+        const lowStockProducts = DB.produtos.filter(p => Number(p.estoque) <= Number(p.estoqueMin));
+        const activeOrders = DB.encomendas.filter(e => e.status !== 'Entregue');
+
+        // Desempenho por marca
+        const brandTotals = { Natura: 0, Avon: 0, Eudora: 0, Presentes: 0 };
+        DB.vendas.forEach(v => {
+          (v.itens || []).forEach(it => {
+            const key = brandTotals.hasOwnProperty(it.marca) ? it.marca : 'Presentes';
+            brandTotals[key] += Number(it.preco || 0) * Number(it.qtd || 1);
+          });
+        });
+        const maxBrandVal = Math.max(1, ...Object.values(brandTotals));
+
+        container.innerHTML = `
+          <!-- KPIs Principais -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-slate-400 uppercase">Faturamento Total</span>
+                <span class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-sm">R$</span>
+              </div>
+              <p class="text-2xl font-extrabold text-slate-800 mt-2">${formatBRL(totalFaturado)}</p>
+              <p class="text-[11px] text-slate-500 mt-1">${DB.vendas.length} venda(s) registrada(s)</p>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-slate-400 uppercase">A Receber (Fiado)</span>
+                <span class="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-sm">!</span>
+              </div>
+              <p class="text-2xl font-extrabold text-amber-600 mt-2">${formatBRL(totalFiado)}</p>
+              <p class="text-[11px] text-slate-500 mt-1">Crediário em aberto na loja</p>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-slate-400 uppercase">Encomendas Revista</span>
+                <span class="w-9 h-9 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center font-bold text-sm">#</span>
+              </div>
+              <p class="text-2xl font-extrabold text-brand-700 mt-2">${activeOrders.length}</p>
+              <p class="text-[11px] text-slate-500 mt-1">Pedidos Natura / Avon / Eudora ativos</p>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-slate-400 uppercase">Estoque Crítico</span>
+                <span class="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-bold text-sm">↓</span>
+              </div>
+              <p class="text-2xl font-extrabold ${lowStockProducts.length ? 'text-rose-600' : 'text-slate-800'} mt-2">${lowStockProducts.length}</p>
+              <p class="text-[11px] text-slate-500 mt-1">Itens no mínimo ou esgotados</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Vendas por Marca -->
+            <div class="lg:col-span-6 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
+              <div class="flex items-center justify-between">
+                <h3 class="font-bold text-sm text-slate-800">Desempenho por Marca</h3>
+                <span class="text-[11px] text-slate-400">Acumulado de vendas</span>
+              </div>
+              <div class="space-y-3">
+                ${Object.entries(brandTotals).map(([brand, val]) => {
+                  const pct = Math.round((val / maxBrandVal) * 100);
+                  const barColors = {
+                    Natura: 'bg-orange-500',
+                    Avon: 'bg-pink-500',
+                    Eudora: 'bg-purple-600',
+                    Presentes: 'bg-sky-500'
+                  };
+                  return `
+                    <div>
+                      <div class="flex justify-between text-xs font-semibold mb-1">
+                        <span class="text-slate-700">${brand}</span>
+                        <span class="text-slate-800">${formatBRL(val)}</span>
+                      </div>
+                      <div class="w-full h-2.5 rounded-full bg-slate-100 overflow-hidden">
+                        <div class="h-full rounded-full ${barColors[brand] || 'bg-brand-600'}" style="width: ${pct}%"></div>
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+
+            <!-- Alertas de Reposição -->
+            <div class="lg:col-span-6 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-3">
+              <div class="flex items-center justify-between">
+                <h3 class="font-bold text-sm text-slate-800">Alertas de Reposição de Estoque</h3>
+                <button type="button" onclick="window.navigate('produtos')" class="text-xs font-semibold text-brand-600 hover:underline">Ver Estoque</button>
+              </div>
+              <div class="divide-y divide-slate-100 max-h-52 overflow-y-auto">
+                ${lowStockProducts.length === 0
+                  ? `<p class="py-8 text-center text-xs text-slate-400">Tudo certo! Nenhum produto abaixo do estoque mínimo.</p>`
+                  : lowStockProducts.map(p => `
+                    <div class="py-2.5 flex items-center justify-between gap-2 text-xs">
+                      <div class="min-w-0">
+                        <p class="font-bold text-slate-800 truncate">${p.nome}</p>
+                        <p class="text-[11px] text-slate-400">${p.marca} • Mínimo: ${p.estoqueMin} un</p>
+                      </div>
+                      <span class="px-2.5 py-1 rounded-lg bg-rose-100 text-rose-700 font-bold shrink-0">
+                        ${p.estoque} un
+                      </span>
+                    </div>
+                  `).join('')
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Últimas Vendas Realizadas -->
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+            <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+              <h3 class="font-bold text-sm text-slate-800">Últimas Vendas Realizadas</h3>
+              <button type="button" onclick="window.navigate('pdv')" class="px-3 py-1.5 rounded-xl bg-brand-50 text-brand-700 hover:bg-brand-100 text-xs font-semibold">
+                Abrir PDV
+              </button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 text-slate-500 border-b border-slate-100">
+                  <tr>
+                    <th class="px-4 py-3 font-semibold">Cupom</th>
+                    <th class="px-4 py-3 font-semibold">Data</th>
+                    <th class="px-4 py-3 font-semibold">Cliente</th>
+                    <th class="px-4 py-3 font-semibold">Pagamento</th>
+                    <th class="px-4 py-3 font-semibold text-right">Total</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  ${DB.vendas.slice().reverse().slice(0, 6).map(v => `
+                    <tr class="hover:bg-slate-50">
+                      <td class="px-4 py-3 font-mono font-bold text-brand-700">${v.id}</td>
+                      <td class="px-4 py-3 text-slate-500">${new Date(v.data).toLocaleString('pt-BR')}</td>
+                      <td class="px-4 py-3 font-semibold text-slate-800">${v.clienteNome}</td>
+                      <td class="px-4 py-3">
+                        <span class="px-2 py-0.5 rounded-md font-semibold ${v.statusPagamento === 'Pago' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-800'}">
+                          ${v.formaPagamento}
+                        </span>
+                      </td>
+                      <td class="px-4 py-3 text-right font-bold text-slate-800">${formatBRL(v.total)}</td>
+                    </tr>
+                  `).join('') || `<tr><td colspan="5" class="py-6 text-center text-slate-400">Nenhuma venda registrada ainda.</td></tr>`}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      }
+
+      /**
+       * =====================================================================
+       * 4B. LEITOR DE CÓDIGO DE BARRAS (CÂMERA + LEITOR USB) & BUSCA ONLINE
+       * =====================================================================
+       */
+      let html5QrInstance = null;
+      let nativeVideoStream = null;
+      let nativeScanInterval = null;
+      let activeBarcodeCallback = null;
+      let activeScannerMode = 'auto';
+      let scannerRestarting = false;
+
+      function playBarcodeBeep(success = true) {
+        try {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (!AudioCtx) return;
+          const ctx = new AudioCtx();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(success ? 1046.5 : 320, ctx.currentTime);
+          gain.gain.setValueAtTime(0.08, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.14);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.14);
+        } catch (e) {}
+      }
+
+      function scannerFormats(mode) {
+        const all = ['ean_13','ean_8','upc_a','upc_e','code_128','code_39','code_93','itf','codabar','qr_code','data_matrix','aztec','pdf417'];
+        if (mode === 'qr') return ['qr_code'];
+        if (mode === 'barcode') return all.filter(x => x !== 'qr_code');
+        return all;
+      }
+
+      function setBarcodeScannerMode(mode) {
+        activeScannerMode = ['auto','barcode','qr'].includes(mode) ? mode : 'auto';
+        document.querySelectorAll('.scanner-mode-btn').forEach(btn => {
+          const selected = btn.getAttribute('data-scanner-mode') === activeScannerMode;
+          btn.className = 'scanner-mode-btn px-2 py-2 rounded-lg text-[11px] font-semibold ' + (selected ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-600');
+        });
+        const title = document.getElementById('scanner-modal-title');
+        if (title) title.textContent = activeScannerMode === 'qr' ? 'Leitor de QR Code' : activeScannerMode === 'barcode' ? 'Leitor de Código de Barras' : 'Leitor Automático';
+        if (document.getElementById('barcode-scanner-modal') && !document.getElementById('barcode-scanner-modal').classList.contains('hidden') && !scannerRestarting) {
+          scannerRestarting = true;
+          const cb = activeBarcodeCallback;
+          stopBarcodeScanner().then(() => {
+            activeBarcodeCallback = cb;
+            document.getElementById('barcode-scanner-modal').classList.remove('hidden');
+            return startBarcodeScannerCamera();
+          }).finally(() => { scannerRestarting = false; });
+        }
+      }
+
+      async function startBarcodeScannerCamera() {
+        const status = document.getElementById('scanner-status-msg');
+        const qrDiv = document.getElementById('barcode-reader-viewport');
+        const nativeVideo = document.getElementById('native-barcode-video');
+        qrDiv.innerHTML = '';
+        qrDiv.classList.remove('hidden');
+        nativeVideo.classList.add('hidden');
+        status.textContent = 'Iniciando câmera... Permita o acesso quando solicitado.';
+        const wanted = scannerFormats(activeScannerMode);
+        const detected = (decodedText) => {
+          const cleanCode = (decodedText || '').trim();
+          if (!cleanCode) return;
+          playBarcodeBeep(true);
+          const cb = activeBarcodeCallback;
+          stopBarcodeScanner();
+          if (cb) cb(cleanCode);
+        };
+        if (typeof window.Html5Qrcode !== 'undefined') {
+          try {
+            html5QrInstance = new window.Html5Qrcode('barcode-reader-viewport');
+            const enumMap = window.Html5QrcodeSupportedFormats || {};
+            const keyMap = {ean_13:'EAN_13',ean_8:'EAN_8',upc_a:'UPC_A',upc_e:'UPC_E',code_128:'CODE_128',code_39:'CODE_39',code_93:'CODE_93',itf:'ITF',codabar:'CODABAR',qr_code:'QR_CODE',data_matrix:'DATA_MATRIX',aztec:'AZTEC',pdf417:'PDF_417'};
+            const formatsToSupport = wanted.map(f => enumMap[keyMap[f]]).filter(v => v !== undefined);
+            const config = { fps: 12, qrbox: activeScannerMode === 'qr' ? {width:220,height:220} : {width:280,height:110}, aspectRatio: activeScannerMode === 'qr' ? 1 : 1.6 };
+            if (formatsToSupport.length) config.formatsToSupport = formatsToSupport;
+            await html5QrInstance.start({ facingMode: 'environment' }, config, detected, () => {});
+            status.textContent = activeScannerMode === 'qr' ? 'Câmera ativa! Centralize o QR Code na área marcada.' : 'Câmera ativa! Centralize o código na área marcada.';
+            return;
+          } catch (err) { console.warn('Html5Qrcode fallback:', err); }
+        }
+        if ('BarcodeDetector' in window && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+          try {
+            const supported = await window.BarcodeDetector.getSupportedFormats().catch(() => wanted);
+            const formats = wanted.filter(f => supported.includes(f));
+            if (!formats.length) throw new Error('Formato não suportado pelo navegador');
+            qrDiv.classList.add('hidden');
+            nativeVideo.classList.remove('hidden');
+            nativeVideoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+            nativeVideo.srcObject = nativeVideoStream;
+            const detector = new window.BarcodeDetector({ formats });
+            status.textContent = activeScannerMode === 'qr' ? 'Câmera ativa! Aponte para o QR Code.' : 'Câmera ativa! Aponte para o código.';
+            nativeScanInterval = setInterval(async () => {
+              if (nativeVideo.readyState === nativeVideo.HAVE_ENOUGH_DATA) {
+                try { const codes = await detector.detect(nativeVideo); if (codes?.length) detected(codes[0].rawValue); } catch(e) {}
+              }
+            }, 300);
+            return;
+          } catch (err) { status.textContent = 'Não foi possível acessar a câmera ou o formato não é suportado. Digite ou use leitor USB.'; }
+        } else status.textContent = 'Câmera indisponível neste navegador. Digite ou use leitor USB.';
+      }
+
+      async function openBarcodeScanner(title, onDetectedCallback, mode = 'auto') {
+        activeBarcodeCallback = onDetectedCallback;
+        activeScannerMode = mode;
+        document.getElementById('scanner-manual-input').value = '';
+        setBarcodeScannerMode(mode);
+        document.getElementById('barcode-scanner-modal').classList.remove('hidden');
+        await startBarcodeScannerCamera();
+      }
+
+      async function stopBarcodeScanner() {
+        const modal = document.getElementById('barcode-scanner-modal');
+        if (modal) modal.classList.add('hidden');
+        activeBarcodeCallback = null;
+
+        if (html5QrInstance) {
+          try {
+            if (html5QrInstance.isScanning) {
+              await html5QrInstance.stop();
+            }
+            html5QrInstance.clear();
+          } catch (e) {}
+          html5QrInstance = null;
+        }
+
+        if (nativeScanInterval) {
+          clearInterval(nativeScanInterval);
+          nativeScanInterval = null;
+        }
+        if (nativeVideoStream) {
+          nativeVideoStream.getTracks().forEach(t => t.stop());
+          nativeVideoStream = null;
+        }
+      }
+
+      function handleManualScannerInput() {
+        const val = (document.getElementById('scanner-manual-input').value || '').trim();
+        if (!val) return;
+        playBarcodeBeep(true);
+        const cb = activeBarcodeCallback;
+        stopBarcodeScanner();
+        if (cb) cb(val);
+      }
+
+      function useSampleBarcode(code) {
+        const input = document.getElementById('scanner-manual-input');
+        if (input) input.value = code;
+        handleManualScannerInput();
+      }
+
+      function mapOnlineBrandToStore(rawBrand, rawName = '') {
+        const text = `${rawBrand || ''} ${rawName || ''}`.toLowerCase();
+        if (text.includes('natura') || text.includes('kaiak') || text.includes('tododia') || text.includes('ekos') || text.includes('essencial') || text.includes('chronos')) return 'Natura';
+        if (text.includes('avon') || text.includes('far away') || text.includes('renew') || text.includes('color trend')) return 'Avon';
+        if (text.includes('eudora') || text.includes('siàge') || text.includes('siage') || text.includes('niina')) return 'Eudora';
+        return 'Presentes';
+      }
+
+      async function lookupProductOnlineByBarcode(barcode) {
+        const clean = (barcode || '').replace(/\D/g, '');
+        if (!clean) return null;
+
+        const endpoints = [
+          `https://world.openbeautyfacts.org/api/v2/product/${clean}.json`,
+          `https://world.openfoodfacts.org/api/v2/product/${clean}.json`
+        ];
+
+        for (const url of endpoints) {
+          try {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 5000);
+            const res = await fetch(url, { signal: controller.signal });
+            clearTimeout(timer);
+
+            if (res.ok) {
+              const data = await res.json();
+              if (data && data.status === 1 && data.product) {
+                const p = data.product;
+                const rawName = p.product_name_pt || p.product_name || p.generic_name_pt || p.generic_name || '';
+                const qty = p.quantity ? ` ${p.quantity}` : '';
+                const fullName = `${rawName}${rawName && qty && !rawName.includes(p.quantity) ? qty : ''}`.trim();
+                const rawBrand = p.brands || '';
+                const rawCat = (p.categories_tags && p.categories_tags[0])
+                  ? p.categories_tags[0].replace(/^[a-z]{2}:/, '').replace(/-/g, ' ')
+                  : (url.includes('beauty') ? 'Perfumaria & Cosméticos' : 'Presentes & Bazar');
+
+                if (fullName) {
+                  return {
+                    nome: fullName,
+                    marca: mapOnlineBrandToStore(rawBrand, fullName),
+                    marcaOriginal: rawBrand,
+                    categoria: rawCat.charAt(0).toUpperCase() + rawCat.slice(1),
+                    fonte: url.includes('beauty') ? 'Open Beauty Facts' : 'Open Food Facts'
+                  };
+                }
+              }
+            }
+          } catch (err) {
+            console.warn('Falha ao consultar endpoint:', url, err);
+          }
+        }
+        return null;
+      }
+
+      // Listener global para leitor USB (teclado rápido + Enter) no PDV
+      let usbScanBuffer = '';
+      let usbLastKeyTime = 0;
+
+      document.addEventListener('keydown', function(e) {
+        if (!currentUser || currentRoute !== 'pdv') return;
+        const genModal = document.getElementById('generic-modal');
+        const scanModal = document.getElementById('barcode-scanner-modal');
+        if (genModal && !genModal.classList.contains('hidden')) return;
+        if (scanModal && !scanModal.classList.contains('hidden')) return;
+
+        const activeTag = document.activeElement ? document.activeElement.tagName : '';
+        const isSearchInput = document.activeElement && document.activeElement.id === 'pdv-search-input';
+        if ((activeTag === 'INPUT' || activeTag === 'TEXTAREA' || activeTag === 'SELECT') && !isSearchInput) {
+          return;
+        }
+
+        const now = Date.now();
+        if (now - usbLastKeyTime > 80) {
+          usbScanBuffer = '';
+        }
+        usbLastKeyTime = now;
+
+        if (e.key === 'Enter') {
+          const candidate = isSearchInput ? document.activeElement.value.trim() : usbScanBuffer.trim();
+          if (/^\d{8,14}$/.test(candidate)) {
+            e.preventDefault();
+            usbScanBuffer = '';
+            if (isSearchInput) {
+              document.activeElement.value = '';
+              pdvSearchQuery = '';
+            }
+            handlePdvBarcodeScanned(candidate);
+          }
+          usbScanBuffer = '';
+        } else if (/^\d$/.test(e.key)) {
+          usbScanBuffer += e.key;
+        }
+      });
+
+      /**
+       * =====================================================================
+       * 5. MÓDULO: PDV (FRENTE DE CAIXA / VENDAS)
+       * =====================================================================
+       */
+      function renderPDV(container) {
+        const brands = ['Todos', 'Natura', 'Avon', 'Eudora', 'Presentes', 'Papelaria/Brinquedos'];
+        const filtered = DB.produtos.filter(p => {
+          const matchBrand = pdvBrandFilter === 'Todos' || p.marca === pdvBrandFilter;
+          const q = pdvSearchQuery.toLowerCase();
+          const matchText = !q ||
+            p.nome.toLowerCase().includes(q) ||
+            (p.sku && p.sku.toLowerCase().includes(q)) ||
+            (p.codigoBarras && p.codigoBarras.toLowerCase().includes(q));
+          return matchBrand && matchText;
+        });
+
+        const subtotal = pdvCart.reduce((acc, item) => acc + (item.preco * item.qtd), 0);
+
+        container.innerHTML = `
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <!-- Catálogo de Produtos (Esquerda) -->
+            <div class="lg:col-span-7 space-y-4">
+              <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-3">
+                <div class="flex flex-col sm:flex-row gap-2">
+                  <div class="relative flex-1">
+                    <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+                    <input type="text" id="pdv-search-input" value="${pdvSearchQuery}" oninput="window.handlePdvSearch(this.value)"
+                      placeholder="Buscar por nome, SKU ou bipar código de barras..."
+                      class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:border-brand-500 outline-none text-sm" />
+                  </div>
+                  <button type="button" onclick="window.openPdvCameraScanner('barcode')" class="px-3 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shrink-0">Cód. Barras</button>
+                  <button type="button" onclick="window.openPdvCameraScanner('qr')" class="px-3 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shrink-0">QR Code</button>
+                  <button type="button" onclick="window.openPdvCameraScanner('auto')"
+                    class="px-3 py-2.5 rounded-xl bg-slate-700 hover:bg-slate-800 text-white text-xs font-semibold flex items-center justify-center gap-2 shrink-0 shadow-xs transition">
+                    <svg class="w-4 h-4 text-brand-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z"/></svg>
+                    <span>Todos (Auto)</span>
+                  </button>
+                </div>
+
+                <!-- Filtro rápido por Marca -->
+                <div class="flex flex-wrap gap-1.5">
+                  ${brands.map(b => `
+                    <button type="button" onclick="window.setPdvBrand('${b}')"
+                      class="px-3 py-1.5 rounded-xl text-xs font-semibold transition ${pdvBrandFilter === b ? 'bg-brand-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+                      ${b}
+                    </button>
+                  `).join('')}
+                </div>
+              </div>
+
+              <!-- Grade de Produtos -->
+              <div class="pdv-catalog-grid grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[62vh] overflow-y-auto pr-1">
+                ${filtered.map(p => {
+                  const semEstoque = Number(p.estoque) <= 0;
+                  return `
+                    <div onclick="${semEstoque ? '' : `window.addToCart('${p.id}')`}"
+                      class="bg-white p-4 rounded-2xl border border-slate-200/80 transition flex flex-col justify-between ${semEstoque ? 'opacity-50 cursor-not-allowed' : 'hover:border-brand-400 hover:shadow-md cursor-pointer active:scale-[0.99]'}">
+                      <div>
+                        <div class="flex items-center justify-between gap-2 mb-2">
+                          ${getBrandBadge(p.marca)}
+                          <span class="text-[11px] font-mono text-slate-400">${p.codigoBarras || p.sku || ''}</span>
+                        </div>
+                        <h4 class="text-sm font-bold text-slate-800 line-clamp-2 leading-snug">${p.nome}</h4>
+                      </div>
+                      <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+                        <span class="text-base font-extrabold text-brand-700">${formatBRL(p.preco)}</span>
+                        <span class="text-[11px] font-semibold px-2 py-0.5 rounded-md ${semEstoque ? 'bg-rose-100 text-rose-700' : 'bg-slate-100 text-slate-600'}">
+                          ${semEstoque ? 'Esgotado' : `${p.estoque} disp.`}
+                        </span>
+                      </div>
+                    </div>
+                  `;
+                }).join('') || `<div class="col-span-2 bg-white p-8 rounded-2xl text-center text-sm text-slate-400">Nenhum produto encontrado para o filtro atual.</div>`}
+              </div>
+            </div>
+
+            <!-- Carrinho & Fechamento de Venda (Direita) -->
+            <div id="pdv-cart-panel" class="pdv-cart-panel lg:col-span-5 bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col">
+              <div class="bg-slate-900 text-white px-5 py-3.5 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-brand-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"/></svg>
+                  <h3 class="font-bold text-sm">Cupom de Venda</h3>
+                </div>
+                ${pdvCart.length ? `<button type="button" onclick="window.clearCart()" class="text-xs text-rose-300 hover:text-rose-200">Limpar</button>` : ''}
+              </div>
+
+              <!-- Lista de Itens do Carrinho -->
+              <div class="p-4 space-y-2.5 max-h-64 overflow-y-auto border-b border-slate-100 bg-slate-50/50">
+                ${pdvCart.length === 0
+                  ? `<div class="py-10 text-center text-slate-400 text-xs">
+                       Clique nos produtos ao lado ou escaneie um código de barras para adicionar
+                     </div>`
+                  : pdvCart.map((item, idx) => `
+                    <div class="bg-white p-3 rounded-xl border border-slate-200/80 flex items-center justify-between gap-2">
+                      <div class="min-w-0 flex-1">
+                        <p class="text-xs font-bold text-slate-800 truncate">${item.nome}</p>
+                        <p class="text-[11px] text-slate-500">${formatBRL(item.preco)} un • ${item.marca}</p>
+                      </div>
+                      <div class="flex items-center gap-1.5 shrink-0">
+                        <button type="button" onclick="window.updateCartQty(${idx}, -1)" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs">-</button>
+                        <span class="w-6 text-center text-xs font-bold">${item.qtd}</span>
+                        <button type="button" onclick="window.updateCartQty(${idx}, 1)" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs">+</button>
+                        <button type="button" onclick="window.removeCartItem(${idx})" class="ml-1 text-rose-500 hover:text-rose-700 p-1 font-bold text-xs">✕</button>
+                      </div>
+                    </div>
+                  `).join('')
+                }
+              </div>
+
+              <!-- Dados de Fechamento -->
+              <div class="p-5 space-y-3.5">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 mb-1">Cliente (Opcional / Obrigatório para Fiado)</label>
+                  <select id="pdv-client-select" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium bg-white focus:border-brand-500 outline-none">
+                    <option value="">Consumidor Final (Venda Avulsa)</option>
+                    ${DB.clientes.map(c => `<option value="${c.id}">${c.nome} ${c.telefone ? `(${c.telefone})` : ''}</option>`).join('')}
+                  </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Forma de Pagamento</label>
+                    <select id="pdv-payment-method" onchange="window.togglePdvCreditDueDate()" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium bg-white focus:border-brand-500 outline-none">
+                      <option value="Pix">Pix</option>
+                      <option value="Dinheiro">Dinheiro</option>
+                      <option value="Cartão de Crédito">Cartão de Crédito</option>
+                      <option value="Cartão de Débito">Cartão de Débito</option>
+                      <option value="Fiado / Crediário">Fiado / Crediário Loja</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Desconto (R$)</label>
+                    <input type="number" id="pdv-discount" value="0" min="0" step="0.01" oninput="window.updatePdvTotals()"
+                      class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold focus:border-brand-500 outline-none" />
+                  </div>
+                </div>
+
+                <div id="pdv-due-date-box" class="hidden">
+                  <label class="block text-xs font-semibold text-amber-700 mb-1">Data de Vencimento do Crediário</label>
+                  <input type="date" id="pdv-due-date" value="${new Date(Date.now() + 30*86400000).toISOString().split('T')[0]}"
+                    class="w-full px-3 py-2 rounded-xl border border-amber-300 bg-amber-50/50 text-xs font-medium outline-none" />
+                </div>
+
+                <div class="pt-3 border-t border-slate-100 space-y-1">
+                  <div class="flex justify-between text-xs text-slate-500">
+                    <span>Subtotal</span>
+                    <span>${formatBRL(subtotal)}</span>
+                  </div>
+                  <div class="flex justify-between text-lg font-extrabold text-slate-800">
+                    <span>Total a Pagar</span>
+                    <span id="pdv-final-total" class="text-brand-700">${formatBRL(subtotal)}</span>
+                  </div>
+                </div>
+
+                <button type="button" onclick="window.finalizeSale()" ${pdvCart.length === 0 ? 'disabled' : ''}
+                  class="w-full py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold text-sm shadow-lg shadow-emerald-600/20 transition flex items-center justify-center gap-2">
+                  <span>Finalizar Venda & Gerar Recibo</span>
+                </button>
+              </div>
+            </div>
+          </div>
+          <button type="button" class="mobile-cart-toggle" onclick="window.toggleMobileCart()"><span>🛍️ Sacola (${pdvCart.reduce((n,i)=>n+i.qtd,0)})</span><strong>${formatBRL(subtotal)}</strong></button>
+        `;
+        if (window.innerWidth <= 767 && pdvCart.length === 0) document.getElementById('pdv-cart-panel')?.classList.remove('expanded');
+      }
+
+      function toggleMobileCart() { document.getElementById('pdv-cart-panel')?.classList.toggle('expanded'); }
+
+      function handlePdvSearch(val) {
+        pdvSearchQuery = val;
+        renderPDV(document.getElementById('main-content'));
+        const input = document.getElementById('pdv-search-input');
+        if (input) {
+          input.focus();
+          input.setSelectionRange(val.length, val.length);
+        }
+      }
+
+      function setPdvBrand(brand) {
+        pdvBrandFilter = brand;
+        renderPDV(document.getElementById('main-content'));
+      }
+
+      function openPdvCameraScanner(mode = 'auto') {
+        openBarcodeScanner('PDV - Escanear Produto', (scannedCode) => { handlePdvBarcodeScanned(scannedCode); }, mode);
+      }
+
+      function handlePdvBarcodeScanned(barcode) {
+        const clean = (barcode || '').trim();
+        if (!clean) return;
+
+        const prod = DB.produtos.find(p =>
+          (p.codigoBarras && p.codigoBarras.trim() === clean) ||
+          (p.sku && p.sku.trim().toLowerCase() === clean.toLowerCase())
+        );
+
+        if (!prod) {
+          playBarcodeBeep(false);
+          showConfirm(
+            'Produto Não Encontrado no Estoque',
+            `O código de barras "${clean}" não está cadastrado. Deseja cadastrá-lo agora e buscar os dados na internet?`,
+            () => {
+              navigate('produtos');
+              openProductFormModal(null, clean);
+            }
+          );
+          return;
+        }
+
+        if (Number(prod.estoque) <= 0) {
+          playBarcodeBeep(false);
+          showToast(`Produto "${prod.nome}" está com estoque zerado!`, 'warning');
+          return;
+        }
+
+        playBarcodeBeep(true);
+        addToCart(prod.id);
+        showToast(`Adicionado: 1x ${prod.nome}`, 'success');
+      }
+
+      function addToCart(productId) {
+        const prod = DB.produtos.find(p => p.id === productId);
+        if (!prod || Number(prod.estoque) <= 0) return;
+
+        const existing = pdvCart.find(i => i.produtoId === productId);
+        if (existing) {
+          if (existing.qtd + 1 > Number(prod.estoque)) {
+            showToast(`Estoque máximo disponível: ${prod.estoque} un.`, 'warning');
+            return;
+          }
+          existing.qtd += 1;
+        } else {
+          pdvCart.push({
+            produtoId: prod.id,
+            sku: prod.sku,
+            nome: prod.nome,
+            marca: prod.marca,
+            preco: Number(prod.preco),
+            custo: Number(prod.custo || 0),
+            qtd: 1
+          });
+        }
+        renderPDV(document.getElementById('main-content'));
+      }
+
+      function updateCartQty(idx, delta) {
+        const item = pdvCart[idx];
+        if (!item) return;
+        const prod = DB.produtos.find(p => p.id === item.produtoId);
+        const maxStock = prod ? Number(prod.estoque) : 999;
+
+        const newQty = item.qtd + delta;
+        if (newQty <= 0) {
+          pdvCart.splice(idx, 1);
+        } else if (newQty > maxStock) {
+          showToast(`Estoque disponível: ${maxStock} un.`, 'warning');
+          return;
+        } else {
+          item.qtd = newQty;
+        }
+        renderPDV(document.getElementById('main-content'));
+      }
+
+      function removeCartItem(idx) {
+        pdvCart.splice(idx, 1);
+        renderPDV(document.getElementById('main-content'));
+      }
+
+      function clearCart() {
+        pdvCart = [];
+        renderPDV(document.getElementById('main-content'));
+      }
+
+      function togglePdvCreditDueDate() {
+        const method = document.getElementById('pdv-payment-method').value;
+        const box = document.getElementById('pdv-due-date-box');
+        box.classList.toggle('hidden', method !== 'Fiado / Crediário');
+      }
+
+      function updatePdvTotals() {
+        const subtotal = pdvCart.reduce((acc, item) => acc + (item.preco * item.qtd), 0);
+        const discount = Math.max(0, Number(document.getElementById('pdv-discount').value || 0));
+        const total = Math.max(0, subtotal - discount);
+        document.getElementById('pdv-final-total').textContent = formatBRL(total);
+      }
+
+      async function finalizeSale() {
+        if (pdvCart.length === 0) return;
+
+        const clientId = document.getElementById('pdv-client-select').value;
+        const paymentMethod = document.getElementById('pdv-payment-method').value;
+        const discount = Math.max(0, Number(document.getElementById('pdv-discount').value || 0));
+        const dueDate = document.getElementById('pdv-due-date').value;
+
+        if (paymentMethod === 'Fiado / Crediário' && !clientId) {
+          showToast('Selecione um cliente cadastrado para vendas no Fiado / Crediário!', 'warning');
+          return;
+        }
+
+        const clientObj = DB.clientes.find(c => c.id === clientId);
+        const subtotal = pdvCart.reduce((acc, item) => acc + (item.preco * item.qtd), 0);
+        const total = Math.max(0, subtotal - discount);
+        const isCredit = paymentMethod === 'Fiado / Crediário';
+
+        const saleId = `VND-${1000 + DB.vendas.length + 1}`;
+        const newSale = {
+          id: saleId,
+          data: new Date().toISOString(),
+          clienteId: clientId || '',
+          clienteNome: clientObj ? clientObj.nome : 'Consumidor Final',
+          itens: JSON.parse(JSON.stringify(pdvCart)),
+          subtotal,
+          desconto: discount,
+          total,
+          formaPagamento: paymentMethod,
+          statusPagamento: isCredit ? 'Pendente' : 'Pago',
+          vencimento: isCredit ? dueDate : '',
+          valorPago: isCredit ? 0 : total,
+          vendedor: currentUser ? currentUser.nome : 'Operador'
+        };
+
+        pdvCart.forEach(item => {
+          const prod = DB.produtos.find(p => p.id === item.produtoId);
+          if (prod) {
+            prod.estoque = Math.max(0, Number(prod.estoque) - Number(item.qtd));
+          }
+        });
+
+        DB.vendas.push(newSale);
+
+        if (!isCredit) {
+          DB.financeiro.push({
+            id: `FIN-${Date.now()}`,
+            data: new Date().toISOString().split('T')[0],
+            tipo: 'Entrada',
+            categoria: 'Vendas PDV',
+            descricao: `Venda #${saleId} - ${newSale.clienteNome}`,
+            valor: total,
+            forma: paymentMethod
+          });
+        }
+
+        pdvCart = [];
+        await saveDB(true);
+        showToast(`Venda ${saleId} concluída com sucesso!`, 'success');
+        renderPDV(document.getElementById('main-content'));
+        openReceiptModal(newSale, clientObj);
+      }
+
+      function openReceiptModal(sale, clientObj) {
+        const loja = DB.loja;
+        const itensHtml = sale.itens.map(i => `
+          <div class="flex justify-between text-xs py-1 border-b border-dashed border-slate-200">
+            <div class="pr-2">
+              <span class="font-semibold">${i.qtd}x</span> ${i.nome}
+              <span class="text-[10px] text-slate-400">(${i.marca})</span>
+            </div>
+            <span class="font-mono font-semibold shrink-0">${formatBRL(i.preco * i.qtd)}</span>
+          </div>
+        `).join('');
+
+        const waPhone = clientObj && clientObj.telefone ? clientObj.telefone.replace(/\D/g, '') : '';
+        const waText = encodeURIComponent(
+          `*${loja.nomeFantasia}*\n` +
+          `Comprovante: *${sale.id}*\n` +
+          `Data: ${new Date(sale.data).toLocaleString('pt-BR')}\n` +
+          `Cliente: ${sale.clienteNome}\n` +
+          `Itens:\n` +
+          sale.itens.map(i => `- ${i.qtd}x ${i.nome}: ${formatBRL(i.preco * i.qtd)}`).join('\n') +
+          `\n*Total: ${formatBRL(sale.total)}* (${sale.formaPagamento})\n` +
+          `${loja.mensagemRecibo || ''}`
+        );
+
+        openGenericModal('Comprovante Não Fiscal', `
+          <div id="receipt-print-area" class="bg-amber-50/40 border border-slate-200 rounded-xl p-5 font-mono text-slate-800 space-y-3">
+            <div class="text-center border-b border-dashed border-slate-300 pb-3">
+              <h4 class="font-bold text-base uppercase">${loja.nomeFantasia}</h4>
+              <p class="text-[11px] text-slate-600">${loja.razaoSocial || ''}</p>
+              <p class="text-[11px] text-slate-600">CNPJ/MEI: ${loja.cnpj || '-'} | Tel: ${loja.telefone || '-'}</p>
+              <p class="text-[11px] text-slate-500">${loja.endereco || ''}</p>
+            </div>
+            <div class="text-xs space-y-0.5 border-b border-dashed border-slate-300 pb-2">
+              <div class="flex justify-between"><span>CUPOM: <strong>${sale.id}</strong></span><span>${new Date(sale.data).toLocaleString('pt-BR')}</span></div>
+              <div>CLIENTE: <strong>${sale.clienteNome}</strong></div>
+              <div>ATENDENTE: ${sale.vendedor}</div>
+            </div>
+            <div>
+              ${itensHtml}
+            </div>
+            <div class="pt-2 space-y-1 text-xs">
+              <div class="flex justify-between"><span>Subtotal:</span><span>${formatBRL(sale.subtotal)}</span></div>
+              ${sale.desconto > 0 ? `<div class="flex justify-between text-emerald-700"><span>Desconto:</span><span>- ${formatBRL(sale.desconto)}</span></div>` : ''}
+              <div class="flex justify-between text-sm font-bold border-t border-slate-300 pt-1">
+                <span>TOTAL:</span><span>${formatBRL(sale.total)}</span>
+              </div>
+              <div class="flex justify-between text-[11px] text-slate-600">
+                <span>Forma Pagto:</span><span>${sale.formaPagamento} (${sale.statusPagamento})</span>
+              </div>
+              ${sale.vencimento ? `<div class="flex justify-between text-[11px] text-amber-700 font-bold"><span>Vencimento:</span><span>${formatDateBR(sale.vencimento)}</span></div>` : ''}
+            </div>
+            <div class="text-center text-[11px] text-slate-500 pt-3 border-t border-dashed border-slate-300">
+              <p>${loja.mensagemRecibo || 'Obrigado pela preferência!'}</p>
+              <p class="text-[9px] mt-1 text-slate-400">ERP DJC Sistemas e Automações v1.01</p>
+            </div>
+          </div>
+
+          <div class="mt-5 flex flex-wrap gap-2 justify-end no-print">
+            <button type="button" onclick="window.print()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold flex items-center gap-2">
+              Imprimir Cupom
+            </button>
+            <a href="https://wa.me/${waPhone ? '55' + waPhone : ''}?text=${waText}" target="_blank" rel="noopener"
+              class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-2">
+              Enviar WhatsApp
+            </a>
+          </div>
+        `, 'max-w-md');
+      }
+
+      /**
+       * =====================================================================
+       * 6. MÓDULO: PRODUTOS & ESTOQUE
+       * =====================================================================
+       */
+      let productFilterBrand = 'Todas';
+      let productSearchText = '';
+
+      function renderProdutos(container) {
+        const filtered = DB.produtos.filter(p => {
+          const matchBrand = productFilterBrand === 'Todas' || p.marca === productFilterBrand;
+          const q = productSearchText.toLowerCase();
+          const matchQ = !q ||
+            p.nome.toLowerCase().includes(q) ||
+            (p.sku && p.sku.toLowerCase().includes(q)) ||
+            (p.codigoBarras && p.codigoBarras.toLowerCase().includes(q)) ||
+            (p.categoria && p.categoria.toLowerCase().includes(q));
+          return matchBrand && matchQ;
+        });
+
+        container.innerHTML = `
+          <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="flex flex-1 flex-wrap items-center gap-2.5">
+              <div class="relative flex-1 min-w-[220px]">
+                <input type="text" value="${productSearchText}" oninput="window.filterProductsByText(this.value)"
+                  placeholder="Filtrar por nome, código de barras, SKU ou categoria..."
+                  class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:border-brand-500 outline-none" />
+              </div>
+              <select onchange="window.filterProductsByBrand(this.value)"
+                class="px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium bg-white outline-none">
+                ${['Todas', 'Natura', 'Avon', 'Eudora', 'Presentes', 'Papelaria/Brinquedos', 'Outros'].map(m =>
+                  `<option value="${m}" ${productFilterBrand === m ? 'selected' : ''}>Marca: ${m}</option>`
+                ).join('')}
+              </select>
+            </div>
+            <button type="button" onclick="window.openProductFormModal()" class="px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold shadow-sm flex items-center justify-center gap-2 shrink-0">
+              <span>+ Novo Produto</span>
+            </button>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 text-slate-500 border-b border-slate-200">
+                  <tr>
+                    <th class="px-4 py-3 font-semibold">SKU / Cód. Barras</th>
+                    <th class="px-4 py-3 font-semibold">Produto</th>
+                    <th class="px-4 py-3 font-semibold">Marca</th>
+                    <th class="px-4 py-3 font-semibold text-right">Custo</th>
+                    <th class="px-4 py-3 font-semibold text-right">Venda</th>
+                    <th class="px-4 py-3 font-semibold text-right">Margem</th>
+                    <th class="px-4 py-3 font-semibold text-center">Estoque</th>
+                    <th class="px-4 py-3 font-semibold text-right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  ${filtered.map(p => {
+                    const custo = Number(p.custo || 0);
+                    const preco = Number(p.preco || 0);
+                    const margem = preco > 0 ? (((preco - custo) / preco) * 100).toFixed(0) : 0;
+                    const isLow = Number(p.estoque) <= Number(p.estoqueMin);
+                    return `
+                      <tr class="hover:bg-slate-50/80">
+                        <td class="px-4 py-3 font-mono text-slate-500">
+                          <div class="font-semibold text-slate-700">${p.sku || '-'}</div>
+                          ${p.codigoBarras ? `<div class="text-[11px] text-slate-400">EAN: ${p.codigoBarras}</div>` : ''}
+                        </td>
+                        <td class="px-4 py-3">
+                          <p class="font-bold text-slate-800">${p.nome}</p>
+                          <p class="text-[11px] text-slate-400">${p.categoria || 'Geral'}</p>
+                        </td>
+                        <td class="px-4 py-3">${getBrandBadge(p.marca)}</td>
+                        <td class="px-4 py-3 text-right text-slate-500">${formatBRL(custo)}</td>
+                        <td class="px-4 py-3 text-right font-bold text-slate-800">${formatBRL(preco)}</td>
+                        <td class="px-4 py-3 text-right text-emerald-600 font-semibold">${margem}%</td>
+                        <td class="px-4 py-3 text-center">
+                          <span class="px-2.5 py-1 rounded-lg font-bold ${isLow ? 'bg-rose-100 text-rose-700' : 'bg-slate-100 text-slate-700'}">
+                            ${p.estoque} un
+                          </span>
+                        </td>
+                        <td class="px-4 py-3 text-right space-x-1">
+                          <button type="button" onclick="window.openProductFormModal('${p.id}')" title="Editar" class="px-2 py-1 rounded-lg text-slate-600 hover:text-brand-600 hover:bg-brand-50 font-semibold">
+                            Editar
+                          </button>
+                          <button type="button" onclick="window.deleteProduct('${p.id}')" title="Excluir" class="px-2 py-1 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 font-semibold">
+                            Excluir
+                          </button>
+                        </td>
+                      </tr>
+                    `;
+                  }).join('') || `<tr><td colspan="8" class="py-8 text-center text-slate-400">Nenhum produto encontrado.</td></tr>`}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      }
+
+      function filterProductsByText(val) {
+        productSearchText = val;
+        renderProdutos(document.getElementById('main-content'));
+      }
+
+      function filterProductsByBrand(val) {
+        productFilterBrand = val;
+        renderProdutos(document.getElementById('main-content'));
+      }
+
+      function openProductFormModal(prodId = null, prefillBarcode = '') {
+        const p = prodId ? DB.produtos.find(x => x.id === prodId) : {
+          sku: `PRD-${100 + DB.produtos.length + 1}`,
+          codigoBarras: prefillBarcode || '',
+          nome: '',
+          marca: 'Natura',
+          categoria: 'Perfumaria',
+          custo: '',
+          preco: '',
+          estoque: 1,
+          estoqueMin: 2
+        };
+
+        openGenericModal(prodId ? 'Editar Produto' : 'Cadastrar Novo Produto', `
+          <form id="product-form" class="space-y-4">
+            <!-- Leitura de Código de Barras & Busca Automática na Internet -->
+            <div class="p-3.5 rounded-xl bg-brand-50/70 border border-brand-200/80 space-y-2">
+              <label class="block text-xs font-bold text-brand-900">
+                Código de Barras (EAN / GTIN da Embalagem)
+              </label>
+              <div class="flex flex-col sm:flex-row gap-2">
+                <input type="text" id="pf-barcode" value="${p.codigoBarras || ''}"
+                  placeholder="Bipe ou digite o código (ex: 7899846013247)"
+                  onkeydown="if(event.key==='Enter'){ event.preventDefault(); window.triggerOnlineBarcodeLookup(); }"
+                  class="flex-1 px-3 py-2 rounded-xl border border-brand-200 bg-white text-sm font-mono outline-none focus:border-brand-500" />
+                <div class="flex gap-2">
+                  <button type="button" onclick="window.scanBarcodeForProductForm('barcode')" class="px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shrink-0">Cód. Barras</button>
+                  <button type="button" onclick="window.scanBarcodeForProductForm('qr')" class="px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shrink-0">QR Code</button>
+                  <button type="button" id="btn-lookup-online" onclick="window.triggerOnlineBarcodeLookup()"
+                    class="px-3.5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold flex items-center gap-1.5 shrink-0">
+                    <span>Buscar na Internet</span>
+                  </button>
+                </div>
+              </div>
+              <p id="barcode-lookup-feedback" class="text-[11px] text-slate-600">
+                Escaneie a embalagem ou informe o código para preencher descrição e marca automaticamente da internet.
+              </p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Código Interno / SKU</label>
+                <input type="text" id="pf-sku" value="${p.sku || ''}" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:border-brand-500" />
+              </div>
+              <div class="sm:col-span-2">
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Descrição / Nome do Produto *</label>
+                <input type="text" id="pf-nome" value="${p.nome || ''}" required placeholder="Ex: Colônia Kaiak Aero 100ml" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:border-brand-500" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Marca / Linha</label>
+                <select id="pf-marca" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm bg-white outline-none focus:border-brand-500">
+                  ${['Natura', 'Avon', 'Eudora', 'Presentes', 'Papelaria/Brinquedos', 'Outros'].map(m =>
+                    `<option value="${m}" ${p.marca === m ? 'selected' : ''}>${m}</option>`
+                  ).join('')}
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Categoria</label>
+                <input type="text" id="pf-cat" value="${p.categoria || ''}" placeholder="Perfumaria, Hidratantes, Kits Presente..." class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:border-brand-500" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Preço Custo (R$)</label>
+                <input type="number" step="0.01" id="pf-custo" value="${p.custo}" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:border-brand-500" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Preço Venda (R$)</label>
+                <input type="number" step="0.01" id="pf-preco" value="${p.preco}" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:border-brand-500" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Estoque Atual</label>
+                <input type="number" id="pf-estoque" value="${p.estoque}" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:border-brand-500" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Estoque Mínimo</label>
+                <input type="number" id="pf-min" value="${p.estoqueMin}" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:border-brand-500" />
+              </div>
+            </div>
+
+            <div class="pt-3 flex justify-end gap-2">
+              <button type="button" onclick="window.closeGenericModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100">Cancelar</button>
+              <button type="submit" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold shadow-sm">Salvar Produto</button>
+            </div>
+          </form>
+        `);
+
+        if (prefillBarcode) {
+          triggerOnlineBarcodeLookup();
+        }
+
+        document.getElementById('product-form').onsubmit = async (e) => {
+          e.preventDefault();
+          const payload = {
+            id: prodId || `prd-${Date.now()}`,
+            sku: document.getElementById('pf-sku').value.trim(),
+            codigoBarras: document.getElementById('pf-barcode').value.trim(),
+            nome: document.getElementById('pf-nome').value.trim(),
+            marca: document.getElementById('pf-marca').value,
+            categoria: document.getElementById('pf-cat').value.trim(),
+            custo: Number(document.getElementById('pf-custo').value || 0),
+            preco: Number(document.getElementById('pf-preco').value || 0),
+            estoque: Number(document.getElementById('pf-estoque').value || 0),
+            estoqueMin: Number(document.getElementById('pf-min').value || 0)
+          };
+
+          if (prodId) {
+            const idx = DB.produtos.findIndex(x => x.id === prodId);
+            if (idx > -1) DB.produtos[idx] = payload;
+          } else {
+            DB.produtos.push(payload);
+          }
+
+          closeGenericModal();
+          await saveDB(true);
+          showToast('Produto salvo com sucesso!', 'success');
+          renderProdutos(document.getElementById('main-content'));
+        };
+      }
+
+      function scanBarcodeForProductForm(mode = 'auto') {
+        openBarcodeScanner('Escanear Embalagem do Produto', (scannedCode) => {
+          const barcodeInput = document.getElementById('pf-barcode');
+          if (barcodeInput) {
+            barcodeInput.value = scannedCode;
+            triggerOnlineBarcodeLookup();
+          }
+        }, mode);
+      }
+
+      async function triggerOnlineBarcodeLookup() {
+        const barcodeInput = document.getElementById('pf-barcode');
+        const feedback = document.getElementById('barcode-lookup-feedback');
+        const btn = document.getElementById('btn-lookup-online');
+        if (!barcodeInput) return;
+
+        const code = barcodeInput.value.trim();
+        if (!code) {
+          showToast('Digite ou escaneie um código de barras primeiro.', 'warning');
+          return;
+        }
+
+        if (btn) btn.disabled = true;
+        if (feedback) {
+          feedback.innerHTML = `<span class="text-brand-700 font-semibold">Consultando bases online para o código ${code}...</span>`;
+        }
+
+        const result = await lookupProductOnlineByBarcode(code);
+        if (btn) btn.disabled = false;
+
+        if (result) {
+          const nomeEl = document.getElementById('pf-nome');
+          const marcaEl = document.getElementById('pf-marca');
+          const catEl = document.getElementById('pf-cat');
+
+          if (nomeEl && result.nome) nomeEl.value = result.nome;
+          if (marcaEl && result.marca) marcaEl.value = result.marca;
+          if (catEl && result.categoria) catEl.value = result.categoria;
+
+          if (feedback) {
+            feedback.innerHTML = `<span class="text-emerald-700 font-semibold">Produto encontrado (${result.fonte})${result.marcaOriginal ? ` • Marca detectada: ${result.marcaOriginal}` : ''}!</span>`;
+          }
+          showToast('Descrição preenchida automaticamente da internet!', 'success');
+        } else {
+          if (feedback) {
+            feedback.innerHTML = `<span class="text-amber-700 font-medium">Código ${code} não localizado nas bases públicas. Preencha a descrição manualmente.</span>`;
+          }
+          showToast('Código não encontrado online. Preencha manualmente.', 'info');
+        }
+      }
+
+      function deleteProduct(prodId) {
+        showConfirm('Excluir Produto', 'Tem certeza que deseja remover este item do estoque?', async () => {
+          DB.produtos = DB.produtos.filter(p => p.id !== prodId);
+          await saveDB(true);
+          showToast('Produto excluído.', 'info');
+          renderProdutos(document.getElementById('main-content'));
+        });
+      }
+
+      /**
+       * =====================================================================
+       * 7. MÓDULO: CLIENTES & CREDIÁRIO (FIADO)
+       * =====================================================================
+       */
+      function renderClientes(container) {
+        const pendingSales = DB.vendas.filter(v => v.statusPagamento === 'Pendente');
+
+        container.innerHTML = `
+          <!-- Contas a Receber (Fiado) -->
+          <div class="bg-white rounded-2xl border border-amber-200/80 shadow-xs overflow-hidden">
+            <div class="px-5 py-4 bg-amber-50/70 border-b border-amber-100 flex items-center justify-between">
+              <div>
+                <h3 class="font-bold text-slate-800 text-sm">Crediário da Loja / Contas a Receber (Fiado)</h3>
+                <p class="text-xs text-slate-500">Vendas parceladas ou anotadas aguardando quitação</p>
+              </div>
+              <span class="px-3 py-1 rounded-full bg-amber-600 text-white text-xs font-bold">
+                ${pendingSales.length} pendente(s)
+              </span>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 text-slate-500 border-b border-slate-100">
+                  <tr>
+                    <th class="px-4 py-3 font-semibold">Venda</th>
+                    <th class="px-4 py-3 font-semibold">Cliente</th>
+                    <th class="px-4 py-3 font-semibold">Vencimento</th>
+                    <th class="px-4 py-3 font-semibold text-right">Saldo Devedor</th>
+                    <th class="px-4 py-3 font-semibold text-right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  ${pendingSales.map(v => {
+                    const saldo = Number(v.total) - Number(v.valorPago || 0);
+                    const cli = DB.clientes.find(c => c.id === v.clienteId);
+                    const phone = cli && cli.telefone ? cli.telefone.replace(/\D/g, '') : '';
+                    const msgCob = encodeURIComponent(`Olá ${v.clienteNome}! Passando para lembrar do seu crediário na *${DB.loja.nomeFantasia}* referente à compra ${v.id} no valor de *${formatBRL(saldo)}* (vencimento ${formatDateBR(v.vencimento)}).`);
+                    return `
+                      <tr>
+                        <td class="px-4 py-3 font-mono font-semibold">${v.id}</td>
+                        <td class="px-4 py-3 font-bold text-slate-800">${v.clienteNome}</td>
+                        <td class="px-4 py-3 text-amber-700 font-semibold">${formatDateBR(v.vencimento)}</td>
+                        <td class="px-4 py-3 text-right font-extrabold text-rose-600">${formatBRL(saldo)}</td>
+                        <td class="px-4 py-3 text-right space-x-1">
+                          ${phone ? `<a href="https://wa.me/55${phone}?text=${msgCob}" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-semibold">Cobrar</a>` : ''}
+                          <button type="button" onclick="window.settleCreditSale('${v.id}')" class="px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white font-semibold">
+                            Dar Baixa
+                          </button>
+                        </td>
+                      </tr>
+                    `;
+                  }).join('') || `<tr><td colspan="5" class="py-6 text-center text-slate-400">Nenhuma conta pendente no crediário.</td></tr>`}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Lista de Clientes -->
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+            <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+              <h3 class="font-bold text-slate-800 text-sm">Base de Clientes (${DB.clientes.length})</h3>
+              <button type="button" onclick="window.openClientFormModal()" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold flex items-center gap-1.5">
+                <span>+ Novo Cliente</span>
+              </button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 text-slate-500 border-b border-slate-100">
+                  <tr>
+                    <th class="px-4 py-3 font-semibold">Nome</th>
+                    <th class="px-4 py-3 font-semibold">WhatsApp</th>
+                    <th class="px-4 py-3 font-semibold">Endereço</th>
+                    <th class="px-4 py-3 font-semibold">Aniversário</th>
+                    <th class="px-4 py-3 font-semibold text-right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  ${DB.clientes.map(c => `
+                    <tr class="hover:bg-slate-50">
+                      <td class="px-4 py-3 font-bold text-slate-800">${c.nome}</td>
+                      <td class="px-4 py-3 text-slate-600">${c.telefone || '-'}</td>
+                      <td class="px-4 py-3 text-slate-500">${c.endereco || '-'}</td>
+                      <td class="px-4 py-3 text-slate-500">${formatDateBR(c.aniversario)}</td>
+                      <td class="px-4 py-3 text-right space-x-1">
+                        <button type="button" onclick="window.openClientFormModal('${c.id}')" class="px-2 py-1 rounded-lg text-slate-600 hover:text-brand-600 hover:bg-brand-50 font-semibold">Editar</button>
+                        <button type="button" onclick="window.deleteClient('${c.id}')" class="px-2 py-1 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 font-semibold">Excluir</button>
+                      </td>
+                    </tr>
+                  `).join('') || `<tr><td colspan="5" class="py-6 text-center text-slate-400">Nenhum cliente cadastrado.</td></tr>`}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      }
+
+      function settleCreditSale(saleId) {
+        const sale = DB.vendas.find(v => v.id === saleId);
+        if (!sale) return;
+        const saldo = Number(sale.total) - Number(sale.valorPago || 0);
+
+        showConfirm('Quitar Crediário', `Confirmar o recebimento integral de ${formatBRL(saldo)} referente à venda ${sale.id} (${sale.clienteNome})?`, async () => {
+          sale.valorPago = sale.total;
+          sale.statusPagamento = 'Pago';
+          DB.financeiro.push({
+            id: `FIN-${Date.now()}`,
+            data: new Date().toISOString().split('T')[0],
+            tipo: 'Entrada',
+            categoria: 'Recebimento Crediário',
+            descricao: `Quitação Fiado #${sale.id} - ${sale.clienteNome}`,
+            valor: saldo,
+            forma: 'Pix / Dinheiro'
+          });
+          await saveDB(true);
+          showToast('Pagamento registrado e lançado no caixa!', 'success');
+          renderClientes(document.getElementById('main-content'));
+        });
+      }
+
+      function openClientFormModal(clientId = null) {
+        const c = clientId ? DB.clientes.find(x => x.id === clientId) : {
+          nome: '', telefone: '', cpf: '', endereco: '', aniversario: ''
+        };
+
+        openGenericModal(clientId ? 'Editar Cliente' : 'Cadastrar Cliente', `
+          <form id="client-form" class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Nome Completo</label>
+              <input type="text" id="cf-nome" value="${c.nome}" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:border-brand-500" />
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">WhatsApp (com DDD)</label>
+                <input type="text" id="cf-tel" value="${c.telefone || ''}" placeholder="51999998888" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:border-brand-500" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">CPF (Opcional)</label>
+                <input type="text" id="cf-cpf" value="${c.cpf || ''}" placeholder="000.000.000-00" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:border-brand-500" />
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div class="sm:col-span-2">
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Endereço</label>
+                <input type="text" id="cf-end" value="${c.endereco || ''}" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:border-brand-500" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Aniversário</label>
+                <input type="date" id="cf-niver" value="${c.aniversario || ''}" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:border-brand-500" />
+              </div>
+            </div>
+            <div class="pt-3 flex justify-end gap-2">
+              <button type="button" onclick="window.closeGenericModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100">Cancelar</button>
+              <button type="submit" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold">Salvar Cliente</button>
+            </div>
+          </form>
+        `, 'max-w-lg');
+
+        document.getElementById('client-form').onsubmit = async (e) => {
+          e.preventDefault();
+          const payload = {
+            id: clientId || `cli-${Date.now()}`,
+            nome: document.getElementById('cf-nome').value.trim(),
+            telefone: document.getElementById('cf-tel').value.trim(),
+            cpf: document.getElementById('cf-cpf').value.trim(),
+            endereco: document.getElementById('cf-end').value.trim(),
+            aniversario: document.getElementById('cf-niver').value
+          };
+          if (clientId) {
+            const idx = DB.clientes.findIndex(x => x.id === clientId);
+            if (idx > -1) DB.clientes[idx] = payload;
+          } else {
+            DB.clientes.push(payload);
+          }
+          closeGenericModal();
+          await saveDB(true);
+          showToast('Cliente salvo com sucesso!', 'success');
+          renderClientes(document.getElementById('main-content'));
+        };
+      }
+
+      function deleteClient(id) {
+        showConfirm('Remover Cliente', 'Deseja excluir este cadastro de cliente?', async () => {
+          DB.clientes = DB.clientes.filter(c => c.id !== id);
+          await saveDB(true);
+          showToast('Cliente removido.', 'info');
+          renderClientes(document.getElementById('main-content'));
+        });
+      }
+
+      /**
+       * =====================================================================
+       * 8. MÓDULO: ENCOMENDAS / PEDIDOS DE REVISTA (NATURA, AVON, EUDORA)
+       * =====================================================================
+       */
+      function renderEncomendas(container) {
+        container.innerHTML = `
+          <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h3 class="font-bold text-slate-800 text-sm">Controle de Pedidos por Revista / Ciclo</h3>
+              <p class="text-xs text-slate-500">Anote encomendas de clientes para passar nos ciclos Natura, Avon e Eudora</p>
+            </div>
+            <button type="button" onclick="window.openOrderFormModal()" class="px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold flex items-center gap-2 shrink-0">
+              <span>+ Nova Encomenda</span>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            ${DB.encomendas.slice().reverse().map(enc => {
+              const statusColors = {
+                'Aguardando Pedido': 'bg-slate-100 text-slate-700',
+                'Pedido Feito': 'bg-amber-100 text-amber-800',
+                'Chegou na Loja': 'bg-sky-100 text-sky-800',
+                'Entregue': 'bg-emerald-100 text-emerald-800'
+              };
+              const restante = Math.max(0, Number(enc.valorTotal) - Number(enc.sinalPago || 0));
+              const phone = (enc.clienteTelefone || '').replace(/\D/g, '');
+              const waMsg = encodeURIComponent(`Olá ${enc.clienteNome}! Sua encomenda da revista *${enc.marca}* (${enc.produto}) já chegou aqui na *${DB.loja.nomeFantasia}*! Saldo restante: ${formatBRL(restante)}.`);
+
+              return `
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col justify-between space-y-4">
+                  <div>
+                    <div class="flex items-center justify-between gap-2 mb-2.5">
+                      ${getBrandBadge(enc.marca)}
+                      <span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${statusColors[enc.status] || 'bg-slate-100'}">
+                        ${enc.status}
+                      </span>
+                    </div>
+                    <h4 class="font-bold text-sm text-slate-800">${enc.qtd}x ${enc.produto}</h4>
+                    <p class="text-xs text-slate-500 mt-1">Cliente: ${enc.clienteNome} • Ciclo: <strong>${enc.ciclo || '-'}</strong></p>
+
+                    <div class="mt-3 p-3 rounded-xl bg-slate-50 text-xs grid grid-cols-3 gap-2 text-center">
+                      <div>
+                        <span class="block text-[10px] text-slate-400">Total</span>
+                        <strong class="text-slate-700">${formatBRL(enc.valorTotal)}</strong>
+                      </div>
+                      <div>
+                        <span class="block text-[10px] text-slate-400">Sinal</span>
+                        <strong class="text-emerald-600">${formatBRL(enc.sinalPago)}</strong>
+                      </div>
+                      <div>
+                        <span class="block text-[10px] text-slate-400">Restante</span>
+                        <strong class="text-brand-700">${formatBRL(restante)}</strong>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+                    <select onchange="window.updateOrderStatus('${enc.id}', this.value)" class="px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs font-medium bg-white outline-none">
+                      ${['Aguardando Pedido', 'Pedido Feito', 'Chegou na Loja', 'Entregue'].map(st =>
+                        `<option value="${st}" ${enc.status === st ? 'selected' : ''}>${st}</option>`
+                      ).join('')}
+                    </select>
+
+                    <div class="flex items-center gap-1.5">
+                      ${phone ? `<a href="https://wa.me/55${phone}?text=${waMsg}" target="_blank" title="Avisar Cliente no WhatsApp" class="px-2.5 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-xs font-semibold">WhatsApp</a>` : ''}
+                      ${enc.status !== 'Entregue' ? `<button type="button" onclick="window.convertOrderToSale('${enc.id}')" title="Finalizar Entrega e Lançar Venda" class="px-2.5 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold">Concluir</button>` : ''}
+                      <button type="button" onclick="window.deleteOrder('${enc.id}')" class="px-2 py-1.5 rounded-lg text-slate-400 hover:text-rose-600 text-xs font-bold">✕</button>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join('') || `<div class="col-span-3 bg-white p-10 rounded-2xl text-center text-sm text-slate-400">Nenhuma encomenda de revista cadastrada.</div>`}
+          </div>
+        `;
+      }
+
+      function openOrderFormModal() {
+        openGenericModal('Nova Encomenda de Revista', `
+          <form id="order-form" class="space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Marca da Revista</label>
+                <select id="of-marca" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm bg-white outline-none">
+                  <option value="Natura">Natura</option>
+                  <option value="Avon">Avon</option>
+                  <option value="Eudora">Eudora</option>
+                  <option value="Outros">Outros Catálogos</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Ciclo / Campanha</label>
+                <input type="text" id="of-ciclo" placeholder="Ex: Ciclo 19/2026" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+              <div class="sm:col-span-3">
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Produto Encomendado (Código/Nome)</label>
+                <input type="text" id="of-prod" required placeholder="Ex: Refil Deo Corporal Kaiak" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Qtd</label>
+                <input type="number" id="of-qtd" value="1" min="1" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Nome do Cliente</label>
+                <input type="text" id="of-cli" required placeholder="Nome da cliente" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">WhatsApp do Cliente</label>
+                <input type="text" id="of-tel" placeholder="51999998888" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Valor Total (R$)</label>
+                <input type="number" step="0.01" id="of-total" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Sinal / Adiantamento (R$)</label>
+                <input type="number" step="0.01" id="of-sinal" value="0" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none" />
+              </div>
+            </div>
+
+            <div class="pt-3 flex justify-end gap-2">
+              <button type="button" onclick="window.closeGenericModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100">Cancelar</button>
+              <button type="submit" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold">Salvar Encomenda</button>
+            </div>
+          </form>
+        `, 'max-w-lg');
+
+        document.getElementById('order-form').onsubmit = async (e) => {
+          e.preventDefault();
+          const sinal = Number(document.getElementById('of-sinal').value || 0);
+          const enc = {
+            id: `ENC-${Date.now()}`,
+            data: new Date().toISOString().split('T')[0],
+            marca: document.getElementById('of-marca').value,
+            ciclo: document.getElementById('of-ciclo').value.trim(),
+            produto: document.getElementById('of-prod').value.trim(),
+            qtd: Number(document.getElementById('of-qtd').value || 1),
+            clienteNome: document.getElementById('of-cli').value.trim(),
+            clienteTelefone: document.getElementById('of-tel').value.trim(),
+            valorTotal: Number(document.getElementById('of-total').value || 0),
+            sinalPago: sinal,
+            status: 'Aguardando Pedido'
+          };
+          DB.encomendas.push(enc);
+
+          if (sinal > 0) {
+            DB.financeiro.push({
+              id: `FIN-${Date.now()}`,
+              data: enc.data,
+              tipo: 'Entrada',
+              categoria: 'Sinal Encomenda',
+              descricao: `Sinal Encomenda ${enc.marca} - ${enc.clienteNome}`,
+              valor: sinal,
+              forma: 'Pix / Dinheiro'
+            });
+          }
+
+          closeGenericModal();
+          await saveDB(true);
+          showToast('Encomenda registrada!', 'success');
+          renderEncomendas(document.getElementById('main-content'));
+        };
+      }
+
+      async function updateOrderStatus(id, newStatus) {
+        const enc = DB.encomendas.find(e => e.id === id);
+        if (!enc) return;
+        enc.status = newStatus;
+        await saveDB(true);
+        showToast(`Status atualizado para "${newStatus}"`, 'info');
+        renderEncomendas(document.getElementById('main-content'));
+      }
+
+      function convertOrderToSale(id) {
+        const enc = DB.encomendas.find(e => e.id === id);
+        if (!enc) return;
+        const restante = Math.max(0, Number(enc.valorTotal) - Number(enc.sinalPago || 0));
+
+        showConfirm('Concluir Entrega da Encomenda', `Marcar encomenda de ${enc.clienteNome} como ENTREGUE e registrar recebimento do saldo restante de ${formatBRL(restante)}?`, async () => {
+          enc.status = 'Entregue';
+          enc.sinalPago = enc.valorTotal;
+
+          const saleId = `VND-${1000 + DB.vendas.length + 1}`;
+          DB.vendas.push({
+            id: saleId,
+            data: new Date().toISOString(),
+            clienteId: '',
+            clienteNome: enc.clienteNome,
+            itens: [{
+              produtoId: enc.id,
+              sku: 'REVISTA',
+              nome: enc.produto,
+              marca: enc.marca,
+              qtd: enc.qtd,
+              preco: Number(enc.valorTotal) / Number(enc.qtd || 1),
+              custo: 0
+            }],
+            subtotal: Number(enc.valorTotal),
+            desconto: 0,
+            total: Number(enc.valorTotal),
+            formaPagamento: 'Encomenda Revista',
+            statusPagamento: 'Pago',
+            vencimento: '',
+            valorPago: Number(enc.valorTotal),
+            vendedor: currentUser ? currentUser.nome : 'Operador'
+          });
+
+          if (restante > 0) {
+            DB.financeiro.push({
+              id: `FIN-${Date.now()}`,
+              data: new Date().toISOString().split('T')[0],
+              tipo: 'Entrada',
+              categoria: 'Encomenda Revista',
+              descricao: `Entrega Encomenda ${enc.marca} - ${enc.clienteNome}`,
+              valor: restante,
+              forma: 'Pix / Dinheiro'
+            });
+          }
+
+          await saveDB(true);
+          showToast('Encomenda entregue e faturada com sucesso!', 'success');
+          renderEncomendas(document.getElementById('main-content'));
+        });
+      }
+
+      function deleteOrder(id) {
+        showConfirm('Excluir Encomenda', 'Deseja remover esta encomenda?', async () => {
+          DB.encomendas = DB.encomendas.filter(e => e.id !== id);
+          await saveDB(true);
+          showToast('Encomenda excluída.', 'info');
+          renderEncomendas(document.getElementById('main-content'));
+        });
+      }
+
+      /**
+       * =====================================================================
+       * 9. MÓDULO: FINANCEIRO / FLUXO DE CAIXA
+       * =====================================================================
+       */
+      function renderFinanceiro(container) {
+        const entradas = DB.financeiro.filter(f => f.tipo === 'Entrada').reduce((a, b) => a + Number(b.valor || 0), 0);
+        const saidas = DB.financeiro.filter(f => f.tipo === 'Saída').reduce((a, b) => a + Number(b.valor || 0), 0);
+        const saldo = entradas - saidas;
+
+        container.innerHTML = `
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+              <span class="text-xs font-semibold text-slate-400 uppercase">Total Entradas</span>
+              <p class="text-2xl font-extrabold text-emerald-600 mt-1">${formatBRL(entradas)}</p>
+            </div>
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+              <span class="text-xs font-semibold text-slate-400 uppercase">Total Saídas / Boletos</span>
+              <p class="text-2xl font-extrabold text-rose-600 mt-1">${formatBRL(saidas)}</p>
+            </div>
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+              <span class="text-xs font-semibold text-slate-400 uppercase">Saldo em Caixa</span>
+              <p class="text-2xl font-extrabold ${saldo >= 0 ? 'text-brand-700' : 'text-rose-600'} mt-1">${formatBRL(saldo)}</p>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+            <div class="px-5 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
+              <h3 class="font-bold text-slate-800 text-sm">Movimentações Financeiras</h3>
+              <div class="flex gap-2">
+                <button type="button" onclick="window.openFinanceModal('Entrada')" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold">
+                  + Nova Entrada
+                </button>
+                <button type="button" onclick="window.openFinanceModal('Saída')" class="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold">
+                  - Nova Despesa / Boleto
+                </button>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 text-slate-500 border-b border-slate-100">
+                  <tr>
+                    <th class="px-4 py-3 font-semibold">Data</th>
+                    <th class="px-4 py-3 font-semibold">Tipo</th>
+                    <th class="px-4 py-3 font-semibold">Categoria</th>
+                    <th class="px-4 py-3 font-semibold">Descrição</th>
+                    <th class="px-4 py-3 font-semibold text-right">Valor</th>
+                    <th class="px-4 py-3 font-semibold text-right">Ação</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  ${DB.financeiro.slice().reverse().map(f => `
+                    <tr class="hover:bg-slate-50">
+                      <td class="px-4 py-3 text-slate-500">${formatDateBR(f.data)}</td>
+                      <td class="px-4 py-3">
+                        <span class="px-2 py-0.5 rounded-md text-[11px] font-bold ${f.tipo === 'Entrada' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
+                          ${f.tipo}
+                        </span>
+                      </td>
+                      <td class="px-4 py-3 text-slate-600 font-medium">${f.categoria}</td>
+                      <td class="px-4 py-3 text-slate-800">${f.descricao}</td>
+                      <td class="px-4 py-3 text-right font-bold ${f.tipo === 'Entrada' ? 'text-emerald-600' : 'text-rose-600'}">
+                        ${f.tipo === 'Entrada' ? '+' : '-'} ${formatBRL(f.valor)}
+                      </td>
+                      <td class="px-4 py-3 text-right">
+                        <button type="button" onclick="window.deleteFinance('${f.id}')" class="px-2 py-1 text-slate-400 hover:text-rose-600 font-bold">✕</button>
+                      </td>
+                    </tr>
+                  `).join('') || `<tr><td colspan="6" class="py-6 text-center text-slate-400">Nenhum lançamento registrado.</td></tr>`}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      }
+
+      function openFinanceModal(tipo) {
+        openGenericModal(`Lançar ${tipo}`, `
+          <form id="finance-form" class="space-y-4">
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Data</label>
+                <input type="date" id="ff-data" value="${new Date().toISOString().split('T')[0]}" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Valor (R$)</label>
+                <input type="number" step="0.01" id="ff-valor" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none" />
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Categoria</label>
+              <select id="ff-cat" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm bg-white outline-none">
+                ${tipo === 'Entrada'
+                  ? '<option>Vendas Extras</option><option>Aporte / Troco Inicial</option><option>Outros Recebimentos</option>'
+                  : '<option>Boleto Natura / Avon / Eudora</option><option>Compra de Presentes / Atacado</option><option>Embalagens / Sacolas</option><option>Aluguel / Luz / Internet</option><option>Outras Despesas</option>'
+                }
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Descrição</label>
+              <input type="text" id="ff-desc" required placeholder="Ex: Pagamento boleto Eudora Ciclo 18" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none" />
+            </div>
+            <div class="pt-3 flex justify-end gap-2">
+              <button type="button" onclick="window.closeGenericModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100">Cancelar</button>
+              <button type="submit" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold">Confirmar Lançamento</button>
+            </div>
+          </form>
+        `, 'max-w-md');
+
+        document.getElementById('finance-form').onsubmit = async (e) => {
+          e.preventDefault();
+          DB.financeiro.push({
+            id: `FIN-${Date.now()}`,
+            data: document.getElementById('ff-data').value,
+            tipo,
+            categoria: document.getElementById('ff-cat').value,
+            descricao: document.getElementById('ff-desc').value.trim(),
+            valor: Number(document.getElementById('ff-valor').value || 0),
+            forma: 'Caixa'
+          });
+          closeGenericModal();
+          await saveDB(true);
+          showToast(`${tipo} registrada no caixa!`, 'success');
+          renderFinanceiro(document.getElementById('main-content'));
+        };
+      }
+
+      function deleteFinance(id) {
+        showConfirm('Excluir Lançamento', 'Remover este registro financeiro?', async () => {
+          DB.financeiro = DB.financeiro.filter(f => f.id !== id);
+          await saveDB(true);
+          showToast('Lançamento removido.', 'info');
+          renderFinanceiro(document.getElementById('main-content'));
+        });
+      }
+
+      /**
+       * =====================================================================
+       * 10. MÓDULO: CONFIGURAÇÕES (DADOS DA LOJA, NUVEM / BANCO DE DADOS, USUÁRIOS, BACKUP)
+       * =====================================================================
+       */
+      function renderConfiguracoes(container) {
+        const tabs = [
+          { id: 'loja', label: 'Dados da Loja (White-Label)' },
+          { id: 'github', label: 'Banco de Dados na Nuvem' },
+          { id: 'usuarios', label: 'Usuários & Senhas' },
+          { id: 'backup', label: 'Backup & Exportação' }
+        ];
+
+        container.innerHTML = `
+          <div class="flex flex-wrap gap-2 bg-white p-2 rounded-2xl border border-slate-200/80 shadow-xs">
+            ${tabs.map(t => `
+              <button type="button" onclick="window.switchSettingsTab('${t.id}')"
+                class="px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition ${currentSettingsTab === t.id ? 'bg-brand-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100'}">
+                <span>${t.label}</span>
+              </button>
+            `).join('')}
+          </div>
+
+          <div id="settings-tab-content" class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs"></div>
+        `;
+
+        const tabBox = document.getElementById('settings-tab-content');
+        if (currentSettingsTab === 'loja') renderSettingsLoja(tabBox);
+        else if (currentSettingsTab === 'github') renderSettingsGithub(tabBox);
+        else if (currentSettingsTab === 'usuarios') renderSettingsUsuarios(tabBox);
+        else if (currentSettingsTab === 'backup') renderSettingsBackup(tabBox);
+      }
+
+      function switchSettingsTab(tabId) {
+        navigate('configuracoes', tabId);
+      }
+
+      function renderSettingsLoja(box) {
+        const l = DB.loja;
+        box.innerHTML = `
+          <div class="max-w-2xl space-y-5">
+            <div>
+              <h3 class="font-bold text-base text-slate-800">Cadastro da Loja (Personalização White-Label)</h3>
+              <p class="text-xs text-slate-500">Os dados abaixo personalizam o sistema, tela de login e os comprovantes de venda.</p>
+            </div>
+
+            <form id="store-settings-form" class="space-y-4">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 mb-1">Nome Fantasia do Bazar / Loja *</label>
+                  <input type="text" id="st-fantasia" value="${l.nomeFantasia || ''}" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-brand-500" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 mb-1">Razão Social</label>
+                  <input type="text" id="st-razao" value="${l.razaoSocial || ''}" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-brand-500" />
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 mb-1">CNPJ ou CPF (MEI)</label>
+                  <input type="text" id="st-cnpj" value="${l.cnpj || ''}" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-brand-500" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 mb-1">Telefone / WhatsApp da Loja</label>
+                  <input type="text" id="st-tel" value="${l.telefone || ''}" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-brand-500" />
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Endereço Completo</label>
+                <input type="text" id="st-end" value="${l.endereco || ''}" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-brand-500" />
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">URL da Logomarca (Opcional)</label>
+                <input type="text" id="st-logo" value="${l.logoUrl || ''}" placeholder="https://..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-brand-500" />
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Mensagem de Rodapé do Cupom de Venda</label>
+                <textarea id="st-msg" rows="2" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-brand-500">${l.mensagemRecibo || ''}</textarea>
+              </div>
+
+              <button type="submit" class="px-6 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold shadow-sm">
+                Salvar Dados da Loja
+              </button>
+            </form>
+          </div>
+        `;
+
+        document.getElementById('store-settings-form').onsubmit = async (e) => {
+          e.preventDefault();
+          DB.loja = {
+            nomeFantasia: document.getElementById('st-fantasia').value.trim(),
+            razaoSocial: document.getElementById('st-razao').value.trim(),
+            cnpj: document.getElementById('st-cnpj').value.trim(),
+            telefone: document.getElementById('st-tel').value.trim(),
+            endereco: document.getElementById('st-end').value.trim(),
+            logoUrl: document.getElementById('st-logo').value.trim(),
+            mensagemRecibo: document.getElementById('st-msg').value.trim()
+          };
+          await saveDB(true);
+          showToast('Dados da loja atualizados com sucesso!', 'success');
+        };
+      }
+
+      function renderSettingsGithub(box) {
+        box.innerHTML = `
+          <div class="max-w-2xl space-y-5">
+            <div>
+              <h3 class="font-bold text-base text-slate-800">Integração Banco de Dados na Nuvem (Leitura & Escrita)</h3>
+              <p class="text-xs text-slate-500 mt-1">
+                O sistema salva automaticamente vendas, produtos, clientes e usuários em um arquivo de dados no serviço de nuvem configurado.
+              </p>
+            </div>
+
+            <form id="gh-settings-form" class="space-y-4">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 mb-1">Conta / Usuário da Nuvem</label>
+                  <input type="text" id="gh-owner" value="${githubConfig.owner || ''}" placeholder="ex: djcsistemas" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-brand-500" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 mb-1">Nome do Repositório</label>
+                  <input type="text" id="gh-repo" value="${githubConfig.repo || ''}" placeholder="ex: bazar-erp-database" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-brand-500" />
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 mb-1">Branch</label>
+                  <input type="text" id="gh-branch" value="${githubConfig.branch || 'main'}" placeholder="main" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-brand-500" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 mb-1">Caminho do Arquivo JSON</label>
+                  <input type="text" id="gh-path" value="${githubConfig.path || 'db.json'}" placeholder="db.json" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-brand-500" />
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Personal Access Token (PAT)</label>
+                <input type="password" id="gh-token" value="${githubConfig.token || ''}" placeholder="Token de acesso" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-brand-500" />
+                <p class="text-[11px] text-slate-400 mt-1">Gere um token clássico com escopo <strong>repo</strong> ou Fine-grained com permissão de leitura/escrita em Contents.</p>
+              </div>
+
+              <div class="flex flex-wrap gap-2.5 pt-2">
+                <button type="submit" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold">
+                  Salvar Credenciais
+                </button>
+                <button type="button" onclick="window.pullDBFromGithub(false)" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold">
+                  Baixar da Nuvem
+                </button>
+                <button type="button" onclick="window.pushDBToGithub(false)" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold">
+                  Gerar / Enviar Estrutura (Push)
+                </button>
+              </div>
+            </form>
+          </div>
+        `;
+
+        document.getElementById('gh-settings-form').onsubmit = (e) => {
+          e.preventDefault();
+          githubConfig.owner = document.getElementById('gh-owner').value.trim();
+          githubConfig.repo = document.getElementById('gh-repo').value.trim();
+          githubConfig.branch = document.getElementById('gh-branch').value.trim() || 'main';
+          githubConfig.path = document.getElementById('gh-path').value.trim() || 'db.json';
+          githubConfig.token = document.getElementById('gh-token').value.trim();
+          saveGithubConfigToStorage();
+          showToast('Configurações da nuvem salvas!', 'success');
+        };
+      }
+
+      function renderSettingsUsuarios(box) {
+        box.innerHTML = `
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="font-bold text-base text-slate-800">Usuários de Acesso ao Sistema</h3>
+                <p class="text-xs text-slate-500">Todos os logins e senhas são armazenados diretamente no banco de dados JSON.</p>
+              </div>
+              <button type="button" onclick="window.openUserFormModal()" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold">
+                + Novo Usuário
+              </button>
+            </div>
+
+            <div class="overflow-x-auto border border-slate-200 rounded-xl">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 text-slate-500 border-b border-slate-200">
+                  <tr>
+                    <th class="px-4 py-3 font-semibold">Nome</th>
+                    <th class="px-4 py-3 font-semibold">Login</th>
+                    <th class="px-4 py-3 font-semibold">Perfil</th>
+                    <th class="px-4 py-3 font-semibold">Status</th>
+                    <th class="px-4 py-3 font-semibold text-right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  ${DB.usuarios.map(u => `
+                    <tr>
+                      <td class="px-4 py-3 font-bold text-slate-800">${u.nome}</td>
+                      <td class="px-4 py-3 font-mono text-slate-600">${u.usuario}</td>
+                      <td class="px-4 py-3"><span class="px-2 py-0.5 rounded-md bg-brand-50 text-brand-700 font-semibold">${u.nivel}</span></td>
+                      <td class="px-4 py-3">
+                        <span class="px-2 py-0.5 rounded-md font-semibold ${u.ativo !== false ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
+                          ${u.ativo !== false ? 'Ativo' : 'Inativo'}
+                        </span>
+                      </td>
+                      <td class="px-4 py-3 text-right space-x-1">
+                        <button type="button" onclick="window.openUserFormModal('${u.id}')" class="px-2 py-1 rounded-lg text-slate-600 hover:text-brand-600 font-semibold">Editar</button>
+                        ${DB.usuarios.length > 1 ? `<button type="button" onclick="window.deleteUser('${u.id}')" class="px-2 py-1 rounded-lg text-slate-500 hover:text-rose-600 font-semibold">Excluir</button>` : ''}
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      }
+
+      function openUserFormModal(userId = null) {
+        const u = userId ? DB.usuarios.find(x => x.id === userId) : {
+          nome: '', usuario: '', senha: '', nivel: 'Operador', ativo: true
+        };
+
+        openGenericModal(userId ? 'Editar Usuário' : 'Cadastrar Novo Usuário', `
+          <form id="user-form" class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Nome do Operador / Vendedor</label>
+              <input type="text" id="uf-nome" value="${u.nome}" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none" />
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Login (Usuário)</label>
+                <input type="text" id="uf-user" value="${u.usuario}" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Senha</label>
+                <input type="text" id="uf-pass" value="${u.senha}" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none" />
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Nível de Acesso</label>
+                <select id="uf-nivel" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm bg-white outline-none">
+                  <option value="Administrador" ${u.nivel === 'Administrador' ? 'selected' : ''}>Administrador</option>
+                  <option value="Operador" ${u.nivel === 'Operador' ? 'selected' : ''}>Operador / Caixa</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Status</label>
+                <select id="uf-ativo" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm bg-white outline-none">
+                  <option value="true" ${u.ativo !== false ? 'selected' : ''}>Ativo</option>
+                  <option value="false" ${u.ativo === false ? 'selected' : ''}>Inativo</option>
+                </select>
+              </div>
+            </div>
+            <div class="pt-3 flex justify-end gap-2">
+              <button type="button" onclick="window.closeGenericModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100">Cancelar</button>
+              <button type="submit" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold">Salvar Usuário</button>
+            </div>
+          </form>
+        `, 'max-w-md');
+
+        document.getElementById('user-form').onsubmit = async (e) => {
+          e.preventDefault();
+          const payload = {
+            id: userId || `usr-${Date.now()}`,
+            nome: document.getElementById('uf-nome').value.trim(),
+            usuario: document.getElementById('uf-user').value.trim(),
+            senha: document.getElementById('uf-pass').value,
+            nivel: document.getElementById('uf-nivel').value,
+            ativo: document.getElementById('uf-ativo').value === 'true'
+          };
+
+          if (userId) {
+            const idx = DB.usuarios.findIndex(x => x.id === userId);
+            if (idx > -1) DB.usuarios[idx] = payload;
+          } else {
+            DB.usuarios.push(payload);
+          }
+
+          closeGenericModal();
+          const saveResult = await saveDB(true);
+          if (saveResult.cloudSaved === true) {
+            showToast('Usuário salvo no banco de dados e sincronizado com a nuvem.', 'success');
+          } else if (saveResult.cloudConfigured) {
+            showToast('Usuário salvo neste dispositivo, mas a gravação na nuvem falhou. Verifique a conexão e tente sincronizar novamente.', 'error');
+          } else {
+            showToast('Usuário salvo neste dispositivo. Configure o Banco na Nuvem para compartilhar este acesso com outros aparelhos.', 'warning');
+          }
+          renderConfiguracoes(document.getElementById('main-content'));
+        };
+      }
+
+      function deleteUser(id) {
+        showConfirm('Excluir Usuário', 'Tem certeza que deseja remover este acesso?', async () => {
+          DB.usuarios = DB.usuarios.filter(u => u.id !== id);
+          await saveDB(true);
+          showToast('Usuário removido.', 'info');
+          renderConfiguracoes(document.getElementById('main-content'));
+        });
+      }
+
+      function renderSettingsBackup(box) {
+        box.innerHTML = `
+          <div class="max-w-xl space-y-5">
+            <div>
+              <h3 class="font-bold text-base text-slate-800">Backup Manual & Portabilidade</h3>
+              <p class="text-xs text-slate-500 mt-1">Exporte uma cópia completa do banco de dados em JSON ou restaure um arquivo anterior.</p>
+            </div>
+
+            <div class="flex flex-wrap gap-3">
+              <button type="button" onclick="window.exportBackupJSON()" class="px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold">
+                Baixar Backup (db.json)
+              </button>
+
+              <label class="cursor-pointer px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold">
+                Importar Arquivo JSON
+                <input type="file" accept=".json" onchange="window.importBackupJSON(event)" class="hidden" />
+              </label>
+            </div>
+
+            <div class="pt-4 border-t border-slate-100">
+              <button type="button" onclick="window.resetDemoDatabase()" class="px-4 py-2 rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-semibold">
+                Restaurar Dados de Demonstração Padrão
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      function exportBackupJSON() {
+        const blob = new Blob([JSON.stringify(DB, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `backup-bazar-erp-${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('Backup JSON baixado!', 'success');
+      }
+
+      function importBackupJSON(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          try {
+            const parsed = JSON.parse(e.target.result);
+            if (!parsed.usuarios || !parsed.produtos) {
+              throw new Error('Formato de arquivo inválido.');
+            }
+            DB = parsed;
+            await saveDB(true);
+            showToast('Backup restaurado com sucesso!', 'success');
+            renderCurrentRoute();
+          } catch (err) {
+            showToast(`Erro ao importar: ${err.message}`, 'error');
+          }
+        };
+        reader.readAsText(file);
+      }
+
+      function resetDemoDatabase() {
+        showConfirm('Restaurar Padrão', 'Isso substituirá todos os dados locais pelos dados iniciais de exemplo. Deseja continuar?', async () => {
+          DB = getDefaultDatabase();
+          await saveDB(true);
+          showToast('Banco restaurado para o padrão v1.01.', 'info');
+          renderCurrentRoute();
+        });
+      }
+
+      /**
+       * =====================================================================
+       * 11. EXPOSIÇÃO GLOBAL EXPLÍCITA EM WINDOW (À PROVA DE FALHAS)
+       * =====================================================================
+       */
+      Object.assign(window, {
+        handleLogin,
+        fillDemoCredentials,
+        toggleLoginPassword,
+        logout,
+        toggleMobileSidebar,
+        navigate,
+        switchSettingsTab,
+        openGithubModalFromLogin,
+        closeGithubQuickModal,
+        saveQuickGithubAndPull,
+        initGithubStructureFromModal,
+        pullDBFromGithub,
+        pushDBToGithub,
+        syncGithubNow,
+        openGenericModal,
+        closeGenericModal,
+        openBarcodeScanner,
+        setBarcodeScannerMode,
+        stopBarcodeScanner,
+        handleManualScannerInput,
+        useSampleBarcode,
+        handlePdvSearch,
+        setPdvBrand,
+        openPdvCameraScanner,
+        toggleMobileCart,
+        addToCart,
+        updateCartQty,
+        removeCartItem,
+        clearCart,
+        togglePdvCreditDueDate,
+        updatePdvTotals,
+        finalizeSale,
+        filterProductsByText,
+        filterProductsByBrand,
+        openProductFormModal,
+        scanBarcodeForProductForm,
+        triggerOnlineBarcodeLookup,
+        deleteProduct,
+        settleCreditSale,
+        openClientFormModal,
+        deleteClient,
+        openOrderFormModal,
+        updateOrderStatus,
+        convertOrderToSale,
+        deleteOrder,
+        openFinanceModal,
+        deleteFinance,
+        openUserFormModal,
+        deleteUser,
+        exportBackupJSON,
+        importBackupJSON,
+        resetDemoDatabase
+      });
+
+      /**
+       * =====================================================================
+       * 12. INICIALIZAÇÃO SEGURA DO SISTEMA
+       * =====================================================================
+       */
+      async function bootApplication() {
+        try {
+          loadGithubConfig();
+          loadLocalDB();
+          applyWhiteLabelBranding();
+          updateSyncStatusUI();
+          loadExternalScannerLibAsync();
+
+          // Baixa primeiro o banco compartilhado; assim o login nunca valida
+          // contra uma cópia local antiga antes de receber os usuários da nuvem.
+          if (isGithubConfigured()) {
+            await pullDBFromGithub(true);
+          }
+
+          const savedSession = safeSessionGet(SESSION_USER_KEY);
+          if (savedSession) {
+            try {
+              const parsedUser = JSON.parse(savedSession);
+              const valid = DB.usuarios.find(u => u.id === parsedUser.id && u.ativo !== false);
+              if (valid) {
+                currentUser = valid;
+                enterApp();
+              } else {
+                safeSessionRemove(SESSION_USER_KEY);
+              }
+            } catch (e) {
+              safeSessionRemove(SESSION_USER_KEY);
+            }
+          }
+        } catch (err) {
+          console.error('Erro crítico na inicialização:', err);
+        }
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', bootApplication);
+      } else {
+        bootApplication();
+      }
+    })();
+  </script>
+</body>
+</html>
